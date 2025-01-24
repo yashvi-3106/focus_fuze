@@ -3,7 +3,7 @@ const { ObjectId } = require('mongodb');
 const { MongoClient } = require('mongodb');
 const cors = require('cors');
 const app = express();
-const port = 3000;
+const port = 3001;
 
 const uri = "mongodb://127.0.0.1:27017"; 
 const dbName = "focus_fuze";
