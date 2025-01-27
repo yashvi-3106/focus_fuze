@@ -1,38 +1,24 @@
 const express = require('express');
-const { MongoClient, ObjectId } = require('mongodb');
-const app = express();
-const port = 7000;
+const { ObjectId } = require('mongodb');
+const { getDb } = require('./db');
 
-app.use(express.json());
+const router = express.Router();
 
-const uri = "mongodb://127.0.0.1:27017";
-const dbName = "focus_fuze"; 
+// POST: Create a new team goal
+router.post('/', async (req, res) => {
+  const { title, description, dueDate, priority, members, leaderId } = req.body;
 
-let db, users, teamGoals;
+  if (!title || !leaderId || !members || members.length === 0) {
+    return res.status(400).send('Missing required fields');
+  }
 
-MongoClient.connect(uri, { useUnifiedTopology: true })
-  .then(client => {
-    db = client.db(dbName);
-    users = db.collection('users');
-    teamGoals = db.collection('teamGoals');
-    console.log('Connected to MongoDB');
-  })
-  .catch(err => {
-    console.error('Error connecting to MongoDB:', err);
-    process.exit(1);
-  });
-
-
-app.post('/team-goals', async (req, res) => {
-  const { title, description, dueDate, priority, members } = req.body;
-  const leaderId = req.body.leaderId;  
-  const taskId = new ObjectId(); 
+  const taskId = new ObjectId().toString();
 
   const membersWithTasks = members.map((member) => ({
     memberId: member.memberId,
     name: member.name,
     assignedTask: member.assignedTask || 'General task',
-    completed: false, 
+    completed: false,
   }));
 
   const newTeamGoal = {
@@ -41,14 +27,20 @@ app.post('/team-goals', async (req, res) => {
     dueDate,
     priority,
     leaderId,
-    members: membersWithTasks,  
-    taskId: taskId.toString(),
+    members: membersWithTasks,
+    taskId,
     createdAt: new Date(),
   };
 
   try {
+    const db = getDb();
+    const teamGoals = db.collection('teamGoals');
     await teamGoals.insertOne(newTeamGoal);
-    res.status(201).json({ message: 'Team Goal created successfully', taskId: taskId.toString() });
+
+    res.status(201).json({
+      message: 'Team Goal created successfully',
+      taskId,
+    });
   } catch (err) {
     console.error('Error creating team goal:', err);
     res.status(500).json({ error: 'Error creating team goal' });
@@ -56,49 +48,55 @@ app.post('/team-goals', async (req, res) => {
 });
 
 
+router.post('/tasks/join', async (req, res) => {
+  const { userId, taskId } = req.body;
 
-
-app.post('/join-task/:taskId', async (req, res) => {
-  const { taskId } = req.params;
-  const { memberId, memberName, assignedTask } = req.body;
+  if (!userId || !taskId) {
+    return res.status(400).send('User ID and Task ID are required');
+  }
 
   try {
-    const task = await teamGoals.findOne({ taskId });
+    const db = getDb();
+    const teamGoals = db.collection('teamGoals');
 
+   
+    const task = await teamGoals.findOne({ taskId });
     if (!task) {
       return res.status(404).send('Task not found');
     }
 
+    
+    const isMember = task.members.some((member) => member.memberId === userId);
+    if (isMember) {
+      return res.status(400).send('User already joined this task');
+    }
 
-    const updatedTask = await teamGoals.updateOne(
+    
+    await teamGoals.updateOne(
       { taskId },
-      { $push: { members: { memberId, name: memberName, assignedTask, completed: false } } }
+      { $push: { members: { memberId: userId, name: 'New Member', completed: false } } }
     );
 
-    res.status(200).json({ message: 'Joined the task successfully' });
+    res.status(200).send('User successfully joined the task');
   } catch (err) {
     console.error('Error joining task:', err);
     res.status(500).send('Error joining task');
   }
 });
 
-
-
-app.post('/complete-task/:taskId/:memberId', async (req, res) => {
+// POST: Mark a member's task as completed
+router.post('/complete-task/:taskId/:memberId', async (req, res) => {
   const { taskId, memberId } = req.params;
 
   try {
-    const task = await teamGoals.findOne({ taskId });
+    const db = getDb();
+    const teamGoals = db.collection('teamGoals');
 
-    if (!task) {
-      return res.status(404).send('Task not found');
-    }
+    const task = await teamGoals.findOne({ taskId });
+    if (!task) return res.status(404).send('Task not found');
 
     const member = task.members.find((m) => m.memberId === memberId);
-    if (!member) {
-      return res.status(404).send('Member not found in this task');
-    }
-
+    if (!member) return res.status(404).send('Member not found in this task');
 
     await teamGoals.updateOne(
       { taskId, 'members.memberId': memberId },
@@ -112,17 +110,16 @@ app.post('/complete-task/:taskId/:memberId', async (req, res) => {
   }
 });
 
-
-
-app.get('/task-dashboard/:taskId', async (req, res) => {
+// GET: Fetch task dashboard
+router.get('/task-dashboard/:taskId', async (req, res) => {
   const { taskId } = req.params;
 
   try {
-    const task = await teamGoals.findOne({ taskId });
+    const db = getDb();
+    const teamGoals = db.collection('teamGoals');
 
-    if (!task) {
-      return res.status(404).send('Task not found');
-    }
+    const task = await teamGoals.findOne({ taskId });
+    if (!task) return res.status(404).send('Task not found');
 
     res.status(200).json(task);
   } catch (err) {
@@ -131,7 +128,4 @@ app.get('/task-dashboard/:taskId', async (req, res) => {
   }
 });
 
-
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
-});
+module.exports = router;
