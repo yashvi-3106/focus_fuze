@@ -20,7 +20,7 @@ router.get('/', authenticateUser, async (req, res) => {
     const goals = db.collection('goals');
     const teamGoals = db.collection('teamGoals');
 
-    // Fetch personal tasks
+   // personal goal
     const personalTasks = await goals.find({ userId: userId }).toArray();
     const completedPersonalTasks = personalTasks.filter(task => task.status === 'completed');
     const pendingPersonalTasks = personalTasks.filter(task => task.status === 'pending');
