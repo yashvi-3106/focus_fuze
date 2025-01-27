@@ -1,7 +1,7 @@
 const { MongoClient } = require('mongodb');
 
-// Use the MONGO_URI environment variable for Atlas or fallback to local for local dev
-const uri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017";  // Fallback to local if not set
+// Ensure the MONGO_URI environment variable is set to your Atlas connection string
+const uri = process.env.MONGO_URI;  
 const dbName = "focus_fuze";
 
 let client;
@@ -10,12 +10,15 @@ let db;
 async function connectToDatabase() {
   if (!client) {
     try {
-      client = new MongoClient(uri, { useUnifiedTopology: true });
+      if (!uri) {
+        throw new Error('MONGO_URI is not set. Please provide your MongoDB Atlas connection string.');
+      }
+      client = new MongoClient(uri);
       await client.connect();
-      console.log('Connected to MongoDB');
+      console.log('Connected to MongoDB Atlas');
       db = client.db(dbName);
     } catch (err) {
-      console.error('Error connecting to MongoDB:', err);
+      console.error('Error connecting to MongoDB Atlas:', err);
       throw err;
     }
   }
