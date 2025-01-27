@@ -3,13 +3,10 @@ const cors = require('cors');
 const { connectToDatabase } = require('./db');
 
 const app = express();
-const port = 5000; 
-const mongoUri = "mongodb://127.0.0.1:27017"; 
-
+const port = process.env.PORT || 5000;  // Use the PORT environment variable if set
 
 app.use(express.json());
 app.use(cors());
-
 
 const authenticationRoutes = require('./authentication');
 const calendarRoutes = require('./calendar');
@@ -17,22 +14,19 @@ const teamGoalRoutes = require('./teamGoal');
 const personalGoalRoutes = require('./personalGoal');
 const userDashboardRoutes = require('./userDashboard');
 
-
 app.use('/auth', authenticationRoutes);
 app.use('/calendar', calendarRoutes);
 app.use('/team-goals', teamGoalRoutes);
 app.use('/personal-goals', personalGoalRoutes);
 app.use('/dashboard', userDashboardRoutes);
 
-
 app.get('/health', (req, res) => {
   res.status(200).send('Server is healthy!');
 });
 
-
 const startServer = async () => {
   try {
-    await connectToDatabase(); 
+    await connectToDatabase();  // Connect to MongoDB using the MONGO_URI environment variable
     app.listen(port, () => {
       console.log(`Server running at http://localhost:${port}`);
     });

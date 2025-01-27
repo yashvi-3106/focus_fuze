@@ -1,6 +1,7 @@
 const { MongoClient } = require('mongodb');
 
-const uri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017";
+// Use the MONGO_URI environment variable for Atlas or fallback to local for local dev
+const uri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017";  // Fallback to local if not set
 const dbName = "focus_fuze";
 
 let client;
