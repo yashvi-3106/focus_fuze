@@ -1,11 +1,11 @@
-require('dotenv').config(); 
+require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
 const { connectToDatabase } = require('./db');
 
 const app = express();
-const port = process.env.PORT || 5000;  // Use the PORT environment variable if set
+const port = process.env.PORT || 5000;
 
 app.use(express.json());
 app.use(cors());
@@ -28,7 +28,7 @@ app.get('/health', (req, res) => {
 
 const startServer = async () => {
   try {
-    await connectToDatabase();  // Connect to MongoDB using the MONGO_URI environment variable
+    await connectToDatabase();
     app.listen(port, () => {
       console.log(`Server running at http://localhost:${port}`);
     });

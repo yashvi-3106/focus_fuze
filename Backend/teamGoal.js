@@ -48,41 +48,38 @@ router.post('/', async (req, res) => {
 });
 
 
-router.post('/tasks/join', async (req, res) => {
+router.post("/tasks/join", async (req, res) => {
   const { userId, taskId } = req.body;
 
+  // Check if both taskId and userId are provided
   if (!userId || !taskId) {
-    return res.status(400).send('User ID and Task ID are required');
+    return res.status(400).send("User ID and Task ID are required");
   }
 
   try {
     const db = getDb();
-    const teamGoals = db.collection('teamGoals');
+    const teamGoals = db.collection("teamGoals");
 
-   
+    // Find the task by taskId
     const task = await teamGoals.findOne({ taskId });
     if (!task) {
-      return res.status(404).send('Task not found');
+      return res.status(404).send("Task not found");
     }
 
-    
-    const isMember = task.members.some((member) => member.memberId === userId);
-    if (isMember) {
-      return res.status(400).send('User already joined this task');
-    }
-
-    
+    // Add the user to the task's members list regardless of whether they are already a member
     await teamGoals.updateOne(
       { taskId },
-      { $push: { members: { memberId: userId, name: 'New Member', completed: false } } }
+      { $push: { members: { memberId: userId, name: "New Member", completed: false } } }
     );
 
-    res.status(200).send('User successfully joined the task');
+    res.status(200).send("User successfully joined the task");
   } catch (err) {
-    console.error('Error joining task:', err);
-    res.status(500).send('Error joining task');
+    console.error("Error joining task:", err);
+    res.status(500).send("Error joining task");
   }
 });
+
+
 
 // POST: Mark a member's task as completed
 router.post('/complete-task/:taskId/:memberId', async (req, res) => {

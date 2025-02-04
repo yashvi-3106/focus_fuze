@@ -1,0 +1,137 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+  }
+
+  .container9{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; 
+    width: 100vw;
+    background-color: #f7fafc;
+  }
+
+  .sub-container9{
+    border: 2px solid black;
+    height: 82vh;
+    width: 90vw;
+    margin-top: 5em;
+  }
+
+  .team-img>img{
+    height: 80vh;
+    width: 80vw;
+    /* border: 2px solid black; */
+    margin-left: 4em;
+  }
+
+  .team-form{
+    height: 80vh;
+    width: 90vw;
+    background-color: #E2F1FF;
+    margin-top: 4em;
+    color: black;
+  }
+
+  .task-icon>img{
+    height: 10vh;
+    margin-top: 1em;
+    margin-left: 1em;
+  }
+
+  .create-task{
+    margin-top: -2.9em;
+    margin-left: 3.5em;
+    font-size: 1.5em;
+    font-style: Roboto;
+    font-weight: 600;
+  }
+
+  .fill-details{
+    margin-left: 5.4em;
+    margin-top: -0.4em;
+    font-style: Roboto;
+    font-weight: 100;
+  }
+
+  .task-info{
+    border: 2px solid black;
+    height: 60vh;
+    width: 85vw;
+    margin-left: 1.7em;
+    margin-top: 1em;
+    background-color: #E2F1FF;
+  }
+
+  .team-title{
+    font-size: 1em;
+    margin-top: 1em;
+    margin-left: 1.5em;
+    font-style: Roboto;
+  }
+
+  .title-input{
+    font-style: Roboto;
+    font-size: 1rem;
+    font-weight: 100;
+    color: black;
+    padding-top: 1.2vh;
+    padding-bottom: 1vh;
+    padding-left: 1em;
+    background-color: #ffffff;
+    margin-left: 1.5em;
+    margin-top: 1vh;
+    width: 81vw;
+    border: 1px solid #ccc;
+  }
+
+  .description-input{
+    font-style: Roboto;
+    font-size: 1rem;
+    font-weight: 100;
+    color: black;
+    padding-top: -1em;
+    padding-bottom: 1em;
+    padding-left: 1em;
+    background-color: #ffffff;
+    margin-left: 1.5em;
+    margin-top: 1vh;
+    width: 81vw;
+    height: 10vh;
+    border: 1px solid #ccc;
+  }
+
+  .date-input{
+    color: black;
+    background-color: #ffffff;
+    padding-top: 1.2vh;
+    padding-bottom: 1vh;
+    padding-left: 1em;
+    margin-left: 1.5em;
+    margin-top: 1vh;
+    width: 40vw;
+    border: 1px solid #ccc;
+  }
+
+  .task-priority{
+    font-size: 1em;
+    margin-top: -4em;
+    margin-left: 36.5em;
+    font-style: Roboto;
+  }
+
+  .priority-input{
+    color: black;
+    background-color: #ffffff;
+    padding-top: 1.2vh;
+    padding-bottom: 1vh;
+    padding-left: 1em;
+    margin-left: 43.5em;
+    margin-top: 1vh;
+    width: 40vw;
+    border: 1px solid #ccc;
+  }

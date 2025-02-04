@@ -1,30 +1,42 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import SignIn from './pages/SignIn';
-import Login from './pages/Login';
-import Home from './pages/Home';
-import PersonalGoals from './pages/PersonalGoals';
-import TeamGoals from './pages/TeamGoals';
-import Calendar from './pages/CalendarPage';
-import UserDashboard from './pages/UserDashboard';
+import { BrowserRouter as Router, Route, Routes, useLocation } from "react-router-dom";
+import SignIn from "./pages/SignIn";
+import LogIn from "./pages/LogIn";
+import Home from "./pages/Home";
+import PersonalGoal from "./pages/PersonalGoal";
+import TeamGoal from "./pages/TeamGoal";
+import Navbar from "./components/Navbar";
+import Dashboard from "./pages/Dashboard";
+import TaskDashboard from "./pages/TaskDashboard";
+import CalendarPage from "./pages/CalendarPage";
 
 const App = () => {
-  const isAuthenticated = !!localStorage.getItem('token'); // Check if the user is logged in
-
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<Navigate to="/signin" />} />
-        <Route path="/signin" element={!isAuthenticated ? <SignIn /> : <Navigate to="/home" />} />
-        <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/home" />} />
-        <Route path="/home" element={isAuthenticated ? <Home /> : <Navigate to="/login" />} />
-        <Route path="/personal-goals" element={isAuthenticated ? <PersonalGoals /> : <Navigate to="/login" />} />
-        <Route path="/team-goals" element={isAuthenticated ? <TeamGoals /> : <Navigate to="/login" />} />
-        <Route path="/calendar" element={isAuthenticated ? <Calendar /> : <Navigate to="/login" />} />
-        <Route path="/user-dashboard" element={isAuthenticated ? <UserDashboard /> : <Navigate to="/login" />} />
-      </Routes>
+      <MainContent />
     </Router>
   );
 };
 
-export default App;
+const MainContent = () => {
+  const location = useLocation();
+  const hideNavbar = ["/", "/login"].includes(location.pathname);
 
+  return (
+    <div>
+      {!hideNavbar && <Navbar />}
+      <Routes>
+        <Route path="/" element={<SignIn />} />
+        <Route path="/login" element={<LogIn />} />
+        <Route path="/SignIn" element={<SignIn />} />
+        <Route path="/home" element={<Home />} />
+        <Route path="/personal-goals" element={<PersonalGoal />} />
+        <Route path="/team-goals" element={<TeamGoal />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/task-dashboard/:taskId" element={<TaskDashboard />} /> 
+        <Route path="/calendar-page" element={<CalendarPage/>}/>
+      </Routes>
+    </div>
+  );
+};
+
+export default App;
