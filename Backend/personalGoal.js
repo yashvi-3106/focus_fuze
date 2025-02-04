@@ -23,7 +23,7 @@ router.post('/', async (req, res) => {
     const db = getDb();
     const goals = db.collection('goals');
     const result = await goals.insertOne(newGoal);
-    res.status(201).send(`Goal added with ID: ${result.insertedId}`);
+    res.status(201).send({ insertedId: result.insertedId });
   } catch (err) {
     res.status(500).send('Error adding goal: ' + err.message);
   }
@@ -42,6 +42,26 @@ router.patch('/_id/:_oid', async (req, res) => {
     res.status(500).send('Error partially updating goal: ' + err.message);
   }
 });
+
+// PATCH (partially update) a goal by ID (Mark as Complete or Claim Reward)
+router.patch('/_id/:_oid', async (req, res) => {
+  try {
+    const _oid = new ObjectId(req.params._oid);
+    const { status, rewardStatus } = req.body; // Update status or rewardStatus
+    const db = getDb();
+    const goals = db.collection('goals');
+    const updates = {};
+    
+    if (status) updates.status = status;
+    if (rewardStatus) updates.rewardStatus = rewardStatus;
+
+    const result = await goals.updateOne({ _id: _oid }, { $set: updates });
+    res.status(200).send(`${result.modifiedCount} document(s) updated`);
+  } catch (err) {
+    res.status(500).send('Error updating goal: ' + err.message);
+  }
+});
+
 
 // DELETE a goal by ID
 router.delete('/_id/:_oid', async (req, res) => {

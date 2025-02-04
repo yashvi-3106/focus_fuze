@@ -11,6 +11,45 @@ const isValidDate = (date) => {
 };
 
 
+router.get('/range', async (req, res) => {
+  const { start, end } = req.query;
+
+  if (!isValidDate(start) || !isValidDate(end)) {
+    return res.status(400).send("Invalid date format. Please use YYYY-MM-DD.");
+  }
+
+  try {
+    const db = getDb();
+    const goals = db.collection("goals");
+    const teamGoals = db.collection("teamGoals");
+
+    // Find all personal goals and team goals within the date range
+    const personalTasks = await goals.find({
+      dueDate: { $gte: start, $lte: end },
+    }).toArray();
+
+    const teamTasks = await teamGoals.find({
+      dueDate: { $gte: start, $lte: end },
+    }).toArray();
+
+    // Extract unique due dates
+    const taskDates = new Set([
+      ...personalTasks.map(task => task.dueDate),
+      ...teamTasks.map(task => task.dueDate),
+    ]);
+
+    res.status(200).json({ dates: [...taskDates] });
+  } catch (err) {
+    console.error("Error fetching task dates:", err);
+    res.status(500).send("Error fetching task dates.");
+  }
+});
+
+
+
+
+
+
 router.get('/:date', async (req, res) => {
   const { date } = req.params;
 

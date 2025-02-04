@@ -1,3 +1,5 @@
+/* SignIn.css */
+
 /* Reset some default styles */
 * {
     margin: 0;
@@ -6,18 +8,18 @@
     font-family: Arial, sans-serif;
   }
   
-  
-  .login-container {
+  /* Container to center the sign-up form */
+  .sign-in-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh; 
-    width: 100vw;
+    min-height: 100vh; /* Ensures full screen height */
     background-color: #f7fafc;
+    width: 100vw;
   }
   
   /* Styling for the form */
-  .login-form {
+  .sign-in-form {
     background-color: #fff;
     padding: 40px;
     border-radius: 8px;
@@ -28,7 +30,7 @@
     transition: all 0.3s ease;
   }
   
-  .login-title {
+  .sign-in-title {
     text-align: center;
     font-size: 2rem; /* 32px */
     font-weight: 700;
@@ -78,30 +80,30 @@
     background-color: #2b6cb0;
   }
   
-  /* Styling for the sign-up text */
-  .signup-text {
+  /* Styling for the log-in text */
+  .login-text {
     margin-top: 16px;
     text-align: center;
     font-size: 0.875rem;
     color: #555;
   }
   
-  .signup-link {
+  .login-link {
     color: #3182ce;
   }
   
-  .signup-link:hover {
+  .login-link:hover {
     text-decoration: underline;
   }
   
   /* Media queries for responsiveness */
   @media (max-width: 768px) {
-    .login-form {
+    .sign-in-form {
       padding: 30px;
       max-width: 90%; /* Ensure the form is not too wide on smaller screens */
     }
   
-    .login-title {
+    .sign-in-title {
       font-size: 1.75rem; /* 28px */
     }
   
@@ -115,12 +117,12 @@
   }
   
   @media (max-width: 480px) {
-    .login-form {
+    .sign-in-form {
       padding: 20px;
       max-width: 90%;
     }
   
-    .login-title {
+    .sign-in-title {
       font-size: 1.5rem; /* 24px */
     }
   
