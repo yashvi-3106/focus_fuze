@@ -11,22 +11,107 @@
     justify-content: center;
     align-items: center;
     min-height: 100vh; 
-    width: 100vw;
+    width: 99vw;
     background-color: #f7fafc;
+    overflow: auto;
+    height: auto; /* Expands dynamically */
+    
   }
 
   .sub-container9{
     border: 2px solid black;
-    height: 82vh;
-    width: 90vw;
-    margin-top: 5em;
+    background: linear-gradient(to right, #1d4ed8, #7c3aed);
+    height: 60vh;
+    width: 99vw;
+    margin: 0;
+    padding-top: 7em;
+    padding-left: 2em;
   }
+  .team-line{
+    font-size: 3rem;
+    font-weight: 800;
+    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+    animation: fadeInUp 1s ease-out;
+  }
+
+  .toggle{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 2rem;
+    margin-bottom: 2em;
+  }
+
+  .create-card {
+    position: relative;
+    background-color: white;
+    padding: 2rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.5s ease, box-shadow 0.5s ease;
+    overflow: hidden;
+    height: 35vh;
+    width: 40vw;
+  }
+  
+  .create-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  }
+  
+  .create-card .service-icon {
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+    transition: color 0.3s ease;
+  }
+  
+  .create-card:hover .service-icon {
+    color: #2b6cb0;
+  }
+  
+  .create-card-1 {
+    background-color: #ebf8ff;
+  }
+  
+  .create-card-2 {
+    background-color: #f0fdf4;
+  }
+
+  .create-card-1 .create-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom right, #63b3ed, #ebf8ff);
+    opacity: 0.1;
+    border-radius: 0.5rem;
+    z-index: 0;
+  }
+  
+  .create-card-2 .create-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom right, #68d391, #f0fdf4);
+    opacity: 0.1;
+    border-radius: 0.5rem;
+    z-index: 0;
+  }
+
+
+
 
   .team-img>img{
     height: 80vh;
     width: 80vw;
     /* border: 2px solid black; */
     margin-left: 4em;
+    border: 2px solid;
   }
 
   .team-form{
@@ -35,6 +120,10 @@
     background-color: #E2F1FF;
     margin-top: 4em;
     color: black;
+    overflow: auto; /* Allows scrolling if necessary */
+    min-height: 60vh; /* Ensures initial height */
+    height: auto; /* Expands dynamically */
+    margin-bottom: 2em;
   }
 
   .task-icon>img{
@@ -44,7 +133,7 @@
   }
 
   .create-task{
-    margin-top: -2.9em;
+    margin-top: -3em;
     margin-left: 3.5em;
     font-size: 1.5em;
     font-style: Roboto;
@@ -53,19 +142,45 @@
 
   .fill-details{
     margin-left: 5.4em;
-    margin-top: -0.4em;
+    margin-top: -0.2em;
     font-style: Roboto;
     font-weight: 100;
   }
 
-  .task-info{
+  /* .task-info{
     border: 2px solid black;
     height: 60vh;
     width: 85vw;
     margin-left: 1.7em;
     margin-top: 1em;
     background-color: #E2F1FF;
+  } */
+
+  .task-info {
+    border: 2px solid black;
+    width: 85vw;
+    background-color: #E2F1FF;
+    margin-left: 1.7em;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    padding: 10px;
+    overflow: auto; /* Allows scrolling if necessary */
+    min-height: 60vh; /* Ensures initial height */
+    height: auto; /* Expands dynamically */
   }
+
+  .btn-1{
+    position: relative;
+    top: -10em;
+    left: 35em;
+  }
+
+  .btn-2{
+    position: relative;
+    left: 36em;
+
+  }
+  
 
   .team-title{
     font-size: 1em;
@@ -119,19 +234,157 @@
 
   .task-priority{
     font-size: 1em;
-    margin-top: -4em;
-    margin-left: 36.5em;
     font-style: Roboto;
+    position: relative;
+    top: -4.7em;
+    left: 42em;
   }
 
   .priority-input{
+    position: relative;
+    top: -3.25em;
+    left: 43em;
+    color: black;
+    background-color: #ffffff;
+    padding-top: 1.3vh;
+    padding-bottom: 1vh;
+    padding-left: 1em;
+    margin-left: 1.5em;
+    margin-top: 1vh;
+    width: 40vw;
+    border: 1px solid #ccc;
+  }
+
+  /* .member-input{
+    position: relative;
+    top: -1.5em;
     color: black;
     background-color: #ffffff;
     padding-top: 1.2vh;
     padding-bottom: 1vh;
     padding-left: 1em;
-    margin-left: 43.5em;
-    margin-top: 1vh;
-    width: 40vw;
+    margin-left: 1.5em;
+    width: 28vw;
     border: 1px solid #ccc;
+  } */
+
+  .assigned-task{
+    font-size: 1em;
+    margin-top: -4em;
+    margin-left: 30em;
+    font-style: Roboto;
   }
+
+  /* .assigned-input{
+    position: relative;
+    top: -4em;
+    color: black;
+    background-color: #ffffff;
+    padding-top: 1.2vh;
+    padding-bottom: 1vh;
+    padding-left: 1em;
+    margin-left: 34em;
+    width: 52.5vw;
+    border: 1px solid #ccc;
+  } */
+
+  .member-container {
+    display: flex;
+    gap: 10px; /* Reduce space between inputs */
+    align-items: center;
+    margin-bottom: 5px; /* Reduce gap between members */
+    margin-left: 1.2em;
+  }
+  
+  .member-input {
+    width: 25vw; /* Adjust this value as needed */
+    padding: 8px;
+    border: 1px solid #ccc;
+    background-color: #ffffff;
+    color: black;
+  }
+  
+  .assigned-input {
+    width: 55.5vw; /* Adjust this value as needed */
+    padding: 8px;
+    border: 1px solid #ccc;
+    background-color: #ffffff;
+    color: black;
+  }
+  
+  
+
+  .members{
+    font-size: 1em;
+    margin-top: 0.5em;
+    margin-left: 1.5em;
+    font-style: Roboto;
+  }
+
+  .box1{
+    font-size: 1.3em;
+    margin-top: -1em;
+    margin-left: 1.2em;
+    font-style: Roboto;
+    font-weight: 600;
+  }
+
+  .add-member{
+    position: relative;
+    top: -2em;
+    left: 71em;
+  }
+
+  .create-task1{
+    position: relative;
+    left: 78.5vw;
+  }
+
+
+  /* Container for the join task form */
+.join-task-container {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  margin: 20px auto;
+}
+
+/* Labels for the form fields */
+.join-task-container label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+/* Input fields styling */
+.join-task-container input[type="text"] {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+  background-color: #ffffff;
+  color: black;
+}
+
+/* Button styling */
+.join-task-container button {
+  width: 100%;
+  padding: 10px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+/* Button hover effect */
+.join-task-container button:hover {
+  background-color: #45a049;
+}
