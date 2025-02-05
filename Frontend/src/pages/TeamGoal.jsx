@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import "./TeamGoal.css"
 
 const TeamGoal = () => {
   const navigate = useNavigate();
@@ -121,18 +122,51 @@ const TeamGoal = () => {
 
   return (
     <div className="container9">
+      <div className="sub-container9">
+        <div className="team-line">Great teams don’t just <br /> work together—they <br /> thrive together.</div>
+        
      
 
-     
-      <button onClick={() => handleFormSwitch(true)}>Create Task</button>
-      <button onClick={() => handleFormSwitch(false)}>Join Task</button>
+      </div>
+
+      <div className="toggle">
+
+        <div className="create-card create-card-1">
+        <button onClick={() => handleFormSwitch(true)} >Create Task</button>
+
+        </div>
+
+        <div className="create-card create-card2">
+        <button onClick={() => handleFormSwitch(false)} >Join Task</button>
+
+        </div>
+
+      </div>
+
+
+
+      <div className="team-form">
+      <div className="task-icon">
+          <img src="https://png.pngtree.com/png-vector/20230412/ourmid/pngtree-completed-task-line-icon-vector-png-image_6703007.png" alt="" />
+        </div>
+        {/* <div className="create-task">Create New Task</div> */}
+        <div className="create-task">{isCreateTask ? "Create a New Team Goal" : "Join an Existing Task"}</div>
+        <div className="fill-details">Fill in the details below to create a new task and assign team members.</div>
+
+        <button onClick={createTask} className="create-task1">Create Task</button>
+        
+
+
+      {/* Toggle between Create Task and Join Task */}
+      {/* <button onClick={() => handleFormSwitch(true)}>Create Task</button>
+      <button onClick={() => handleFormSwitch(false)}>Join Task</button> */}
 
       {isCreateTask ? (
-        
-        <div>
+        // Create Task Form
+        <div className="task-info">
           <div>
-            <label>Title:</label>
-            <input
+            <div className="team-title">Title:</div>
+            <input className="title-input"
               type="text"
               name="title"
               value={newTask.title}
@@ -140,8 +174,8 @@ const TeamGoal = () => {
             />
           </div>
           <div>
-            <label>Description:</label>
-            <input
+            <div className="team-title">Description:</div>
+            <input className="description-input"
               type="text"
               name="description"
               value={newTask.description}
@@ -149,8 +183,8 @@ const TeamGoal = () => {
             />
           </div>
           <div>
-            <label>Due Date:</label>
-            <input
+            <div className="team-title">Due Date:</div>
+            <input className="date-input"
               type="date"
               name="dueDate"
               value={newTask.dueDate}
@@ -158,62 +192,74 @@ const TeamGoal = () => {
             />
           </div>
           <div>
-            <label>Priority:</label>
-            <input
-              type="text"
-              name="priority"
+            <label className="task-priority">Priority:</label>
+            {/* <p className="tasx">Priority</p> */}
+            <select name="priority"   
               value={newTask.priority}
               onChange={handleInputChange}
-            />
+              className="priority-input">
+                  <option value="">Select Priority</option>
+                  <option value="High">High</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Low">Low</option>
+                </select>
+
+
           </div>
 
-          <h3>Members:</h3>
-          {newTask.members.map((member, idx) => (
-            <div key={idx}>
-              <label>Member Name:</label>
-              <input
-                type="text"
-                name="name"
-                value={member.name}
-                onChange={(e) => handleMemberChange(idx, e)}
-              />
-              <label>Assigned Task:</label>
-              <input
-                type="text"
-                name="assignedTask"
-                value={member.assignedTask}
-                onChange={(e) => handleMemberChange(idx, e)}
-              />
-            </div>
-          ))}
-          <button onClick={addMember}>Add Member</button>
+          <div className="box1">Members</div>
+          <button onClick={addMember} className="add-member">Add Member</button>
 
-          <button onClick={createTask}>Create Task</button>
+          {newTask.members.map((member, idx) => (
+  <div key={idx} className="member-container">
+    <input
+      className="member-input"
+      placeholder="Member Name"
+      type="text"
+      name="name"
+      value={member.name}
+      onChange={(e) => handleMemberChange(idx, e)}
+    />
+    <input
+      className="assigned-input"
+      placeholder="Assigned Task"
+      type="text"
+      name="assignedTask"
+      value={member.assignedTask}
+      onChange={(e) => handleMemberChange(idx, e)}
+    />
+  </div>
+))}
+
+
+
+
         </div>
       ) : (
         // Join Task Form
+        <div className="join-task-container">
         <div>
-          <div>
-            <label>Task ID:</label>
-            <input
-              type="text"
-              value={taskId}
-              onChange={(e) => setTaskId(e.target.value)}
-            />
-          </div>
-          <div>
-            <label>User ID:</label>
-            <input
-              type="text"
-              value={userId}
-              onChange={(e) => setUserId(e.target.value)}
-            />
-          </div>
-
-          <button onClick={joinTask}>Join Task</button>
+          <label>Task ID:</label>
+          <input
+            type="text"
+            value={taskId}
+            onChange={(e) => setTaskId(e.target.value)}
+          />
         </div>
+        <div>
+          <label>User ID:</label>
+          <input
+            type="text"
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
+          />
+        </div>
+        <button onClick={joinTask}>Join Task</button>
+      </div>
       )}
     </div>
+    </div>
+    
   );
 };
 
