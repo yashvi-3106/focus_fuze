@@ -128,68 +128,73 @@ const PersonalGoal = () => {
   };
 
   return (
-    <div className="container3">
-      <div className="section2">
-        <div className="img2">
-          <img src="https://static.vecteezy.com/system/resources/previews/041/172/156/non_2x/goal-setting-visualization-flat-illustration-vector.jpg" />
+    <div className="container9">
+
+      <div className="hero-section1">
+        <div className="container1">
+          <h2 className="hero-title1">Personal Goal</h2>
+          <p className="hero-description1">
+            Organize. Prioritize. Achieve. <br />
+            Manage your tasks with ease <br /> and accomplish more every day.
+          </p>
+          <a href="#contact" className="cta-button1">
+            Get Started
+          </a>
         </div>
-        <div className="goal-text1">
-          <p>Personal Success Hub</p>
+        <div className="background-overlay1">
+          <div className="background-image"></div>
+          <div className="gradient-overlay1"></div>
+          <div className="circle-effect circle-one"></div>
+          <div className="circle-effect circle-two"></div>
+          <div className="circle-effect circle-three"></div>
         </div>
-        <div className="goal-text2">
-          <p>Set Up & Achieve</p>
-        </div>
-        <div className="goal-text3">
-          <p>Define your goals, take action, and make every day a step toward the future you deserve. Start your journey today!</p>
-        </div>
+
+        
       </div>
 
-      <div className="form-data">
-        <div className="input">
-          <div className="goal">Create New Goal</div>
+      <div className="personal-form">
+        <div className="personal-goal">
+          <h3>Create New Goal</h3>  
+          <p className="title1">Goal Tittle</p>
+          <input type="text" name="title" value={newGoal.title} onChange={handleInputChange} placeholder="Title" className="title2" />
 
-          <div className="txt">Goal Title </div>
-          <input type="text" name="title" value={newGoal.title} onChange={handleInputChange} placeholder="Title" className="title" />
+          <p className="title1">Description</p>
+          <input type="text" name="description" value={newGoal.description} onChange={handleInputChange} placeholder="Description" className="title3" />
 
-          <div className="txt">Description</div>
-          <input type="text" name="description" value={newGoal.description} onChange={handleInputChange} placeholder="Description" className="description" />
+          <div className="flex">
+            <div>
+          <p className="title1">Deadline</p>
+          <input type="date" name="deadline" value={newGoal.deadline} onChange={handleInputChange} className="title4" />
 
-          <div className="goal-input-row">
-            <div className="goal-input">
-              <label className="goal-label">Deadline</label>
-              <div className="goal-field">
-                <input type="date" name="deadline" value={newGoal.deadline} onChange={handleInputChange} />
-              </div>
-            </div>
+          </div>
 
-            <div className="goal-input">
-              <label className="goal-label">Priority</label>
-              <div className="goal-field">
-                <select name="priority" value={newGoal.priority} onChange={handleInputChange}>
+          <div>
+          <p className="title1">priority </p>
+          <select name="priority" value={newGoal.priority} onChange={handleInputChange} className="title5">
                   <option value="">Select Priority</option>
                   <option value="High">High</option>
                   <option value="Medium">Medium</option>
                   <option value="Low">Low</option>
                 </select>
-              </div>
-            </div>
 
-            <div className="goal-input">
-              <label className="goal-label">Reward Points</label>
-              <div className="goal-field">
-                <input type="number" name="rewardPoints" value={newGoal.rewardPoints} onChange={handleInputChange} placeholder="Reward Points" />
-              </div>
-            </div>
+
           </div>
 
-          <button onClick={editingGoal ? updateGoal : addGoal} className="btn1">
+          <div>
+          <p className="title1">Rewards Points </p>
+          <input className="title6" type="number" name="rewardPoints" value={newGoal.rewardPoints} onChange={handleInputChange} placeholder="Reward Points" />
+
+          </div>
+          </div>
+          {/* <button className="goal1">Add Goals</button> */}
+          <button onClick={editingGoal ? updateGoal : addGoal} className="goal1">
             {editingGoal ? "Update Goal" : "Create Goal"}
           </button>
-        </div>
+
+</div>
       </div>
 
-      <div className="add-goal">
-        {goals.map((goal) => (
+      {goals.map((goal) => (
           <div key={goal._id} className="goal-card">
             <p className="txt5">Title : {goal.title}</p>
             <p className="txt7">Priority: {goal.priority}</p>
@@ -221,7 +226,8 @@ const PersonalGoal = () => {
             </div>
           </div>
         ))}
-      </div>
+
+      
     </div>
   );
 };

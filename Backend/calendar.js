@@ -1,128 +1,73 @@
-const express = require('express');
+const express = require("express");
+const { ObjectId } = require("mongodb");
+const { getDb } = require("./db");  // Ensure this is properly imported
+
 const router = express.Router();
-const { getDb } = require('./db');
 
-const isValidDate = (date) => {
-  const regex = /^\d{4}-\d{2}-\d{2}$/; 
-  if (!regex.test(date)) return false;
+// ✅ Add a new event
+router.post("/", async (req, res) => {
+    const { userId, title, date, description } = req.body;
+    if (!userId || !title || !date) {
+        return res.status(400).json({ error: "Missing required fields" });
+    }
 
-  const parsedDate = new Date(date);
-  return !isNaN(parsedDate);
-};
+    try {
+        const db = getDb();
+        const eventsCollection = db.collection("calendarEvents");
 
+        const newEvent = {
+            userId,
+            title,
+            date,
+            description,
+            createdAt: new Date(),
+        };
 
-router.get('/range', async (req, res) => {
-  const { start, end } = req.query;
-
-  if (!isValidDate(start) || !isValidDate(end)) {
-    return res.status(400).send("Invalid date format. Please use YYYY-MM-DD.");
-  }
-
-  try {
-    const db = getDb();
-    const goals = db.collection("goals");
-    const teamGoals = db.collection("teamGoals");
-
-    // Find all personal goals and team goals within the date range
-    const personalTasks = await goals.find({
-      dueDate: { $gte: start, $lte: end },
-    }).toArray();
-
-    const teamTasks = await teamGoals.find({
-      dueDate: { $gte: start, $lte: end },
-    }).toArray();
-
-    // Extract unique due dates
-    const taskDates = new Set([
-      ...personalTasks.map(task => task.dueDate),
-      ...teamTasks.map(task => task.dueDate),
-    ]);
-
-    res.status(200).json({ dates: [...taskDates] });
-  } catch (err) {
-    console.error("Error fetching task dates:", err);
-    res.status(500).send("Error fetching task dates.");
-  }
+        const result = await eventsCollection.insertOne(newEvent);
+        res.status(201).json({ message: "Event added successfully", eventId: result.insertedId });
+    } catch (err) {
+        console.error("Error adding event:", err);
+        res.status(500).json({ error: "Failed to add event" });
+    }
 });
 
-
-
-
-
-
-router.get('/:date', async (req, res) => {
-  const { date } = req.params;
-
-  if (!isValidDate(date)) {
-    return res.status(400).send('Invalid date format. Please use YYYY-MM-DD.');
-  }
-
-  const startOfDay = new Date(date);
-  const endOfDay = new Date(date);
-  endOfDay.setDate(endOfDay.getDate() + 1);
-
-  try {
-    const db = getDb();
-    const goals = db.collection('goals');
-    const teamGoals = db.collection('teamGoals');
-
-    
-    const personalTasks = await goals.find({
-      $or: [
-        { dueDate: { $gte: startOfDay, $lt: endOfDay } },
-        { completedAt: { $gte: startOfDay, $lt: endOfDay } },
-      ],
-    }).toArray();
-
-    
-    const teamTasks = await teamGoals.find({
-      $or: [
-        { dueDate: { $gte: startOfDay, $lt: endOfDay } },
-        { "members.completedAt": { $gte: startOfDay, $lt: endOfDay } },
-      ],
-    }).toArray();
-
-    const tasksForDay = [];
-
+// ✅ Get all events for a user
+router.get("/:userId", async (req, res) => {
+    const { userId } = req.params;
+    console.log("Fetching notes for userId (as string):", userId);
   
-    personalTasks.forEach((task) => {
-      tasksForDay.push({
-        title: task.title,
-        type: 'Personal',
-        dueDate: task.dueDate,
-        completedAt: task.completedAt,
-        status: task.status,
-        rewardPoints: task.rewardPoints,
-      });
-    });
+    try {
+      const db = getDb();
+      const eventsCollection = db.collection("calendarEvents");
+  
+      const calendarEvents = await eventsCollection.find({ userId }).toArray();
+      console.log("Fetched calendarEvents:", calendarEvents); // Debugging
+  
+      res.status(200).json(calendarEvents);
+    } catch (err) {
+      console.error("Error fetching calendarEvents:", err);
+      res.status(500).json({ error: "Failed to fetch calendarEvents" });
+    }
+  });
 
-    
-    teamTasks.forEach((task) => {
-      task.members.forEach((member) => {
-        if (
-          (member.completedAt >= startOfDay && member.completedAt < endOfDay) ||
-          (task.dueDate >= startOfDay && task.dueDate < endOfDay)
-        ) {
-          tasksForDay.push({
-            title: task.title,
-            type: 'Team',
-            dueDate: task.dueDate,
-            completedAt: member.completedAt,
-            status: member.completed ? 'Completed' : 'Pending',
-            rewardPoints: task.rewardPoints,
-          });
+// ✅ Delete an event
+router.delete("/:eventId", async (req, res) => {
+    const { eventId } = req.params;
+
+    try {
+        const db = getDb();
+        const eventsCollection = db.collection("calendarEvents");
+
+        const result = await eventsCollection.deleteOne({ _id: new ObjectId(eventId) });
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ error: "Event not found" });
         }
-      });
-    });
 
-    res.status(200).json({
-      date: startOfDay.toISOString().split('T')[0], 
-      tasks: tasksForDay,
-    });
-  } catch (err) {
-    console.error('Error fetching tasks for calendar date:', err);
-    res.status(500).send('Error fetching tasks for calendar date');
-  }
+        res.status(200).json({ message: "Event deleted successfully" });
+    } catch (err) {
+        console.error("Error deleting event:", err);
+        res.status(500).json({ error: "Failed to delete event" });
+    }
 });
 
 module.exports = router;

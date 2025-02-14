@@ -1,75 +1,84 @@
 const express = require('express');
-const jwt = require('jsonwebtoken');
-const { getDb } = require('./db');
+const bcrypt = require('bcryptjs');
+const mongoose = require("mongoose");
 
 const router = express.Router();
 
-// JWT secret
-const jwtSecret = process.env.JWT_SECRET;
-const jwtExpiration = process.env.JWT_EXPIRATION || '1h';
+// ✅ Define User Schema Inside authentication.js
+const userSchema = new mongoose.Schema({
+  username: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  loggedIn: { type: Boolean, default: false } // ✅ Track login status
+});
 
-// Sign In (Register) Route
+const User = mongoose.model("User", userSchema);
+
+// ✅ Register User
 router.post('/register', async (req, res) => {
-  const { fullname, username, password, confirmPassword } = req.body;
-
-  // Validate passwords
-  if (password !== confirmPassword) {
-    return res.status(400).send('Passwords do not match');
-  }
-
+  const { username, email, password } = req.body;
   try {
-    const db = getDb();
-    const users = db.collection('users');
+    // Hash password before saving
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Check if the username already exists
-    const existingUser = await users.findOne({ username });
-    if (existingUser) {
-      return res.status(400).send('Username already exists');
-    }
-
-    // Add the user to the database
-    await users.insertOne({
-      fullname,
+    const user = new User({
       username,
-      password, // Storing password as plain text (not recommended for production)
+      email,
+      password: hashedPassword,
     });
 
-    res.status(201).send('User registered successfully');
+    await user.save();
+    req.session.userId = user._id; // Set session on successful registration
+    res.status(201).json({ message: 'User created successfully' });
   } catch (err) {
-    console.error('Error during registration:', err);
-    res.status(500).send('An error occurred during registration');
+    res.status(400).json({ error: err.message });
   }
 });
 
-// Login Route
+// ✅ Login User & Mark as Logged In
 router.post('/login', async (req, res) => {
-  const { username, password } = req.body;
-
+  const { email, password } = req.body;
   try {
-    const db = getDb();
-    const users = db.collection('users');
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ error: 'User not found' });
 
-    // Check if the username exists
-    const user = await users.findOne({ username });
-    if (!user) {
-      return res.status(400).send('User not found');
-    }
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(400).json({ error: 'Invalid credentials' });
 
-    // Verify the password
-    if (user.password !== password) {
-      return res.status(400).send('Invalid password');
-    }
+    req.session.userId = user._id;
 
-    // Generate a JWT token with userId in the payload
-    const token = jwt.sign({ userId: user._id }, jwtSecret, {
-      expiresIn: jwtExpiration,
-    });
+    // ✅ Mark user as logged in
+    await User.updateOne({ _id: user._id }, { $set: { loggedIn: true } });
 
-    res.status(200).json({ token });
+    res.status(200).json({ message: 'Login successful', username: user.username, userId: user._id });
   } catch (err) {
-    console.error('Error during login:', err);
-    res.status(500).send('An error occurred during login');
+    res.status(400).json({ error: err.message });
   }
 });
 
-module.exports = router; 
+// ✅ Fetch Only Logged-In Users
+router.get('/logged-in-users', async (req, res) => {
+  try {
+    const users = await User.find({ loggedIn: true }, 'username _id'); // ✅ Fetch only active users
+    res.status(200).json(users);
+  } catch (err) {
+    res.status(500).json({ error: 'Error fetching logged-in users' });
+  }
+});
+
+// ✅ Logout User & Mark as Logged Out
+router.post('/logout', async (req, res) => {
+  try {
+    if (req.session.userId) {
+      await User.updateOne({ _id: req.session.userId }, { $set: { loggedIn: false } }); // ✅ Mark as logged out
+    }
+    
+    req.session.destroy(() => {
+      res.status(200).json({ message: 'Logged out successfully' });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Error logging out' });
+  }
+});
+
+module.exports = router;

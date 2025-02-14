@@ -1,25 +1,37 @@
 const express = require('express');
 const { ObjectId } = require('mongodb');
-const { getDb } = require('./db');
+const { getDb } = require('./db'); // Adjust the path if necessary
 
 const router = express.Router();
 
-// POST: Create a new team goal
+// 🟢 Create a new task (Unchanged)
+// 🟢 Create a new task (leader is the person creating the task)
 router.post('/', async (req, res) => {
-  const { title, description, dueDate, priority, members, leaderId } = req.body;
+  const { title, description, dueDate, priority, members, leaderId, leaderName } = req.body;
 
-  if (!title || !leaderId || !members || members.length === 0) {
+  if (!title || !leaderId || !leaderName || !members || members.length === 0) {
     return res.status(400).send('Missing required fields');
   }
 
   const taskId = new ObjectId().toString();
 
-  const membersWithTasks = members.map((member) => ({
-    memberId: member.memberId,
-    name: member.name,
-    assignedTask: member.assignedTask || 'General task',
-    completed: false,
-  }));
+  // Always assign the creator as the leader
+  const membersWithRoles = [
+    {
+      memberId: leaderId,
+      name: leaderName,
+      assignedTask: "Leader - Manage Task",
+      completed: false,
+      role: "leader",
+    },
+    ...members.map(member => ({
+      memberId: member.memberId,
+      name: member.name,
+      assignedTask: member.assignedTask || "General task",
+      completed: false,
+      role: "member",
+    }))
+  ];
 
   const newTeamGoal = {
     title,
@@ -27,8 +39,8 @@ router.post('/', async (req, res) => {
     dueDate,
     priority,
     leaderId,
-    members: membersWithTasks,
-    taskId,
+    members: membersWithRoles,
+    taskId, // Ensure taskId is stored as a string
     createdAt: new Date(),
   };
 
@@ -48,6 +60,8 @@ router.post('/', async (req, res) => {
 });
 
 
+// 🟢 Join an existing task (Fixed)
+// 🟢 Join an existing task (user is added as a member)
 router.post("/tasks/join", async (req, res) => {
   const { userId, taskId, name } = req.body;
 
@@ -59,174 +73,121 @@ router.post("/tasks/join", async (req, res) => {
     const db = getDb();
     const teamGoals = db.collection("teamGoals");
 
-    const task = await teamGoals.findOne({ taskId });
+    const task = await teamGoals.findOne({ taskId: taskId });
+
     if (!task) {
       return res.status(404).send("Task not found");
     }
 
+    // Check if the user is already a member
+    const isAlreadyMember = task.members.some(member => member.memberId === userId);
+    if (isAlreadyMember) {
+      return res.status(400).send("User is already a member of this task");
+    }
+
+    // Add user as a member
     await teamGoals.updateOne(
-      { taskId },
-      { $push: { members: { memberId: userId, name, completed: false } } }
+      { taskId: taskId },
+      { $push: { members: { memberId: userId, name, assignedTask: "General task", completed: false, role: "member" } } }
     );
 
-    res.status(200).send("User successfully joined the task");
+    res.status(200).send("User successfully joined the task as a member");
   } catch (err) {
-    console.error("Error joining task:", err);
-    res.status(500).send("Error joining task");
+    console.error("Error adding member:", err);
+    res.status(500).send("Error adding member to the task");
   }
 });
 
 
-
-// POST: Mark a member's task as completed
-// POST: Mark a member's task as completed
-router.post('/complete-task/:taskId/:memberId', async (req, res) => {
-  const { taskId, memberId } = req.params;
-
-  try {
-    const db = getDb();
-    const teamGoals = db.collection('teamGoals');
-
-    // Find the task by taskId
-    const task = await teamGoals.findOne({ taskId });
-    if (!task) return res.status(404).send('Task not found');
-
-    // Find the member by memberId in the task's members array
-    const member = task.members.find((m) => m.memberId === memberId);
-    if (!member) return res.status(404).send('Member not found in this task');
-
-    // Update the member's 'completed' status to true
-    await teamGoals.updateOne(
-      { taskId, 'members.memberId': memberId },
-      { $set: { 'members.$.completed': true } } // Mark the task as complete for the specific member
-    );
-
-    res.status(200).json({ message: 'Task marked as completed for member' });
-  } catch (err) {
-    console.error('Error marking task as completed:', err);
-    res.status(500).send('Error marking task as completed');
-  }
-});
-
-
-
-// GET: Fetch task dashboard
+// 🟢 Fetch task details (Fixed)
 router.get('/task-dashboard/:taskId', async (req, res) => {
   const { taskId } = req.params;
 
+  console.log("Received request for taskId:", taskId);  // Debugging log
+
   try {
     const db = getDb();
     const teamGoals = db.collection('teamGoals');
 
-    const task = await teamGoals.findOne({ taskId });
-    if (!task) return res.status(404).send('Task not found');
+    let task = await teamGoals.findOne({ taskId: taskId });  // Searching by taskId (string)
 
-    res.status(200).json(task);
+    if (!task) {
+      console.log("Task not found for taskId:", taskId);
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    console.log("Task found:", task);
+    res.status(200).json({
+      task,
+      members: task.members || [],
+      comments: task.comments || [],
+    });
   } catch (err) {
-    console.error('Error fetching task dashboard:', err);
-    res.status(500).send('Error fetching task dashboard');
+    console.error('Error fetching task details:', err);
+    res.status(500).json({ error: 'Error fetching task details' });
   }
 });
 
 
-router.post('/add-comment/:taskId', async (req, res) => {
+
+// 🟢 Mark Task as Complete (Fixed)
+router.post('/:taskId/mark-complete', async (req, res) => {
   const { taskId } = req.params;
-  const { user, text } = req.body;
+  const { memberId } = req.body;
 
-  if (!user || !text) {
-    return res.status(400).send("User and text are required to post a comment");
+  if (!taskId || !memberId) {
+    return res.status(400).json({ error: "Task ID and Member ID are required." });
   }
 
   try {
     const db = getDb();
     const teamGoals = db.collection('teamGoals');
 
-    // Find the task by taskId
-    const task = await teamGoals.findOne({ taskId });
-    if (!task) return res.status(404).send('Task not found');
+    const task = await teamGoals.findOne({ taskId: taskId }); // ✅ Fix applied
 
-    // Add the new comment to the task's comments array
+    if (!task) return res.status(404).json({ error: 'Task not found' });
+
+    const member = task.members.find(m => m.memberId === memberId);
+    if (!member) return res.status(404).json({ error: 'Member not found in this task' });
+
     await teamGoals.updateOne(
-      { taskId },
-      { $push: { comments: { user, text, createdAt: new Date() } } }
+      { taskId: taskId, "members.memberId": memberId },
+      { $set: { "members.$.completed": true } }
     );
 
-    res.status(200).json({ message: 'Comment added successfully' });
+    res.status(200).json({ message: "Task marked as completed" });
   } catch (err) {
-    console.error('Error adding comment:', err);
-    res.status(500).send('Error adding comment');
+    console.error("Error marking task as completed:", err);
+    res.status(500).json({ error: "Error marking task as completed" });
   }
 });
 
-// POST: Delete a comment from a task
-router.post('/delete-comment/:taskId', async (req, res) => {
-  const { taskId } = req.params;
-  const { user, text } = req.body;
 
-  if (!user || !text) {
-    return res.status(400).send("User and text are required to delete a comment");
-  }
+// 🟢 Fetch tasks for a specific user (Leader or Member)
+router.get('/user-tasks/:userId', async (req, res) => {
+  const { userId } = req.params;
 
   try {
     const db = getDb();
     const teamGoals = db.collection('teamGoals');
 
-    // Find the task by taskId
-    const task = await teamGoals.findOne({ taskId });
-    if (!task) return res.status(404).send('Task not found');
+    const tasks = await teamGoals.find({
+      $or: [
+        { 'members.memberId': userId }, // Task where the user is a member
+        { 'leaderId': userId }, // Task where the user is the leader
+      ]
+    }).toArray();
 
-    // Find the comment by user and text
-    const comment = task.comments.find(
-      (comment) => comment.user === user && comment.text === text
-    );
-
-    if (!comment) return res.status(404).send('Comment not found');
-
-    // Remove the comment from the task's comments array
-    await teamGoals.updateOne(
-      { taskId },
-      { $pull: { comments: { user, text } } }
-    );
-
-    res.status(200).json({ message: 'Comment deleted successfully' });
+    res.status(200).json(tasks.map(task => ({
+      taskId: task.taskId,
+      title: task.title,
+      role: task.members.find(member => member.memberId === userId)?.role || "leader"
+    })));
   } catch (err) {
-    console.error('Error deleting comment:', err);
-    res.status(500).send('Error deleting comment');
+    console.error("Error fetching tasks for user:", err);
+    res.status(500).json({ error: "Error fetching tasks" });
   }
 });
 
 
-// // Route to get task details by taskId
-// router.get("/team-goals/:taskId", authenticateUser, async (req, res) => {
-//   const { taskId } = req.params;
-
-//   try {
-//     const db = getDb();
-//     const teamGoals = db.collection("teamGoals");
-
-//     // Fetch the task by taskId
-//     const task = await teamGoals.findOne({ _id: new ObjectId(taskId) });
-
-//     if (!task) {
-//       return res.status(404).send("Task not found.");
-//     }
-
-//     res.status(200).json(task); // Send the task details back
-//   } catch (err) {
-//     console.error("Error fetching task details:", err);
-//     res.status(500).send("An error occurred while fetching task details.");
-//   }
-// });
-
-
-
-
-
-
-
-
-
-
-
-
-module.exports = router;
+module.exports = router; 
