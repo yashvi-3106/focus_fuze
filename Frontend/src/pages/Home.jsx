@@ -54,26 +54,40 @@ const HomePage = () => {
       <div className="features">Features</div>
       <div className="features-list">
         <div className="features-card features-card-1">
-          <h3 className="service-card-title">Personal Goal</h3>
+        <div className="service-card-icon"><img src="https://png.pngtree.com/png-clipart/20230330/original/pngtree-achievable-goal-silhouette-wellness-icon-transparent-background-png-image_9008664.png" alt="" /></div>
+          <h3 className="service-card-title1">Personal Goal</h3>
           <p className="service-description">
-            Set and track your personal goals <br /> with ease. Stay motivated <br /> with clear deadlines, progress tracking, <br /> and helpful reminders.
+            Set and track your personal goals  with ease. Stay <br /> motivated  with clear  deadlines progress tracking, <br />  and helpful reminders.
           </p>
         </div>
 
         <div className="features-card features-card-2">
-          <h3 className="service-card-title">Notes</h3>
+        <div className="service-card-icon"><img src="https://png.pngtree.com/png-clipart/20230330/original/pngtree-achievable-goal-silhouette-wellness-icon-transparent-background-png-image_9008664.png" alt="" /></div>
+          <h3 className="service-card-title2">Notes</h3>
           <p className="service-description">
-          Organize your thoughts and ideas <br /> effortlessly. Keep track of important <br /> notes with easy access, clear <br /> categorization, and quick updates.
+          Organize your thoughts and ideas effortlessly. <br /> Keep track of important  notes with easy access <br /> clear categorization, and quick updates.
           </p>
         </div>
 
         <div className="features-card features-card-3">
-          <h3 className="service-card-title">Calendar</h3>
+        <div className="service-card-icon"><img src="https://png.pngtree.com/png-clipart/20230330/original/pngtree-achievable-goal-silhouette-wellness-icon-transparent-background-png-image_9008664.png" alt="" /></div>
+          <h3 className="service-card-title3">Calendar</h3>
           <p className="service-description">
-          Plan your day with ease. <br /> Schedule appointments, events, and <br /> tasks effortlessly with customizable <br /> reminders and clear time slots.
+          Plan your day with ease.  Schedule appointments, <br /> events, and  tasks effortlessly with  customizable <br /> reminders and clear time slots.
           </p>
         </div>
 
+      </div>
+
+      {/* About Us Section */}
+      <div className="about-us-section">
+        <h2 className="about-us-title">About Us</h2>
+        <p className="about-us-description">
+          FocusFuze is designed to help individuals and teams stay organized, focused, and productive. Our mission is to provide an intuitive, easy-to-use platform that helps you manage your goals, track progress, and collaborate effectively, so you can achieve more each day.
+        </p>
+        <p className="about-us-description">
+          Whether you are working solo or with a team, FocusFuze is here to help you prioritize what matters most and keep you on track.
+        </p>
       </div>
 
       {/* Reviews Section */}
@@ -101,17 +115,6 @@ const HomePage = () => {
             <p className="review-author">– Michael P.</p>
           </div>
         </div>
-      </div>
-
-      {/* About Us Section */}
-      <div className="about-us-section">
-        <h2 className="about-us-title">About Us</h2>
-        <p className="about-us-description">
-          FocusFuze is designed to help individuals and teams stay organized, focused, and productive. Our mission is to provide an intuitive, easy-to-use platform that helps you manage your goals, track progress, and collaborate effectively, so you can achieve more each day.
-        </p>
-        <p className="about-us-description">
-          Whether you are working solo or with a team, FocusFuze is here to help you prioritize what matters most and keep you on track.
-        </p>
       </div>
 
       
