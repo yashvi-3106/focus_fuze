@@ -1,0 +1,138 @@
+/* Basic Styling */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f5f5f5;
+  margin: 0;
+  padding: 0;
+  /* overflow: hidden; */
+}
+
+/* Container for notes and input section */
+.notes-container {
+  display: flex;
+  padding: 20px;
+  justify-content: space-between;
+  gap: 20px;
+  width: 97vw;
+  height: 90vh;
+  margin-top: 2em;
+}
+
+/* Left side: Note creation (title, description box) */
+.note-input {
+  flex: 8; /* takes up 80% of the container width */
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: black;
+}
+
+.note-input h2 {
+  font-size: 24px;
+  margin: 0;
+  text-align: center;
+}
+
+.note-input input {
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.note-input textarea {
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  height: 200px;
+  resize: none;
+  height: 60vh;
+}
+
+.note-input button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.note-input button:hover {
+  background-color: #0056b3;
+}
+
+/* Right side: Notes grid (list of notes) */
+.notes-grid {
+  flex: 2; /* takes up 20% of the container width */
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: 84.5vh;
+  /* Set a max height for the scrollable area */
+  overflow-y: auto; /* Makes the notes area scrollable */
+}
+
+/* Each note box styling */
+.note-box {
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.note-box h3 {
+  font-size: 18px;
+  margin: 0;
+  color: #333;
+}
+
+.note-box p {
+  font-size: 14px;
+  color: #777;
+}
+
+/* Actions (edit, delete icons) */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.edit-icon,
+.delete-icon {
+  cursor: pointer;
+  font-size: 18px;
+  transition: color 0.3s;
+  color: black;
+}
+
+.edit-icon:hover {
+  color: #007bff;
+}
+
+.delete-icon:hover {
+  color: #ff4444;
+}
+
+/* User Notes section (title at the top) */
+.user-notes p {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  text-align: center;
+}

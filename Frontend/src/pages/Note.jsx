@@ -9,12 +9,11 @@ const Note = () => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [userId] = useState(localStorage.getItem("userId") || "");
-  const [username] = useState(localStorage.getItem("username") || "");
 
   const API_URL = "http://localhost:3000/notes";
 
   useEffect(() => {
-    if (userId) {
+    if (userId) { 
       fetchNotes();
     }
   }, [userId]);
@@ -68,9 +67,7 @@ const Note = () => {
 
   return (
     <div className="notes-container">
-      <div className="user-notes">
-      <p >{username ? `${username}'s Notes` : "Your Notes"}</p>
-      </div>
+
 
       <div className="note-input">
         <h2>{selectedNote ? "Edit Note" : "Create Note"}</h2>
