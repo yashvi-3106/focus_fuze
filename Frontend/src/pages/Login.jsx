@@ -3,7 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./Login.css"
 
-const LogIn = () => {
+const Login = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
@@ -61,5 +61,5 @@ const LogIn = () => {
   );
 };
 
-export default LogIn;
+export default Login;
 

@@ -7,7 +7,8 @@ import Dashboard from "./pages/Dashboard";
 import CalendarPage from "./pages/CalendarPage";
 import Note from "./pages/Note"
 import BlogPage from "./pages/BlogPage";
-import LogIn from "./pages/LogIn";
+import Login from "./pages/LogIn";
+
 
 
 const App = () => {
@@ -26,11 +27,8 @@ const MainContent = () => {
     <div>
       {!hideNavbar && <Navbar />}
       <Routes>
-        {/* <Route path="/" element={<SignIn />} />
-        <Route path="/login" element={<LogIn />} />
-        <Route path="/register" element={<SignIn />} /> */}
         <Route path="/" element={<SignIn />} />               {/* SignUp page */}
-        <Route path="/login" element={<LogIn />} />            {/* Login page */}
+        <Route path="/login" element={<Login />} />            {/* Login page */}
         <Route path="/register" element={<SignIn />} />     
         <Route path="/home" element={<Home />} />
         <Route path="/personal-goals" element={<PersonalGoal />} />
