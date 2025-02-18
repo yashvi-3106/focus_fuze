@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, Route, Routes, useLocation } from "react-router-dom";
 import SignIn from "./pages/SignIn";
-import LogIn from "./pages/LogIn";
 import Home from "./pages/Home";
 import PersonalGoal from "./pages/PersonalGoal";
 import Navbar from "./components/Navbar";
@@ -8,6 +7,7 @@ import Dashboard from "./pages/Dashboard";
 import CalendarPage from "./pages/CalendarPage";
 import Note from "./pages/Note"
 import BlogPage from "./pages/BlogPage";
+import LogIn from "./pages/LogIn";
 
 
 const App = () => {
