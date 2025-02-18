@@ -8,31 +8,49 @@ const router = express.Router();
 router.post("/", async (req, res) => {
     const { userId, title, content } = req.body;
     if (!userId || !title || !content) {
-        return res.status(400).json({ error: "Missing required fields" });
+      return res.status(400).json({ error: "Missing required fields" });
     }
-
+  
     try {
-        const db = getDb();
-        const notesCollection = db.collection("notes");
-
-        const newNote = {
-            userId,
-            title,
-            content,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-        };
-
-        const result = await notesCollection.insertOne(newNote);
-        res.status(201).json({ message: "Note created successfully", noteId: result.insertedId });
+      const db = getDb();
+      const notesCollection = db.collection("notes");
+  
+      const newNote = {
+        userId: new ObjectId(userId), // Ensure this is ObjectId
+        title,
+        content,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+  
+      const result = await notesCollection.insertOne(newNote);
+      res.status(201).json({ message: "Note created successfully", noteId: result.insertedId });
     } catch (err) {
-        console.error("Error creating note:", err);
-        res.status(500).json({ error: "Failed to create note" });
+      console.error("Error creating note:", err);
+      res.status(500).json({ error: "Failed to create note" });
     }
-});
+  });
+  
 
 
 
+// router.get("/:userId", async (req, res) => {
+//     const { userId } = req.params;
+//     console.log("Fetching notes for userId (as string):", userId);
+  
+//     try {
+//       const db = getDb();
+//       const notesCollection = db.collection("notes");
+  
+//       const notes = await notesCollection.find({ userId }).toArray();
+//       console.log("Fetched notes:", notes); // Debugging
+  
+//       res.status(200).json(notes);
+//     } catch (err) {
+//       console.error("Error fetching notes:", err);
+//       res.status(500).json({ error: "Failed to fetch notes" });
+//     }
+//   });
 
 router.get("/:userId", async (req, res) => {
     const { userId } = req.params;
@@ -42,7 +60,10 @@ router.get("/:userId", async (req, res) => {
       const db = getDb();
       const notesCollection = db.collection("notes");
   
-      const notes = await notesCollection.find({ userId }).toArray();
+      // Convert userId to ObjectId if it's not already an ObjectId
+      const userObjectId = new ObjectId(userId);
+  
+      const notes = await notesCollection.find({ userId: userObjectId }).toArray();
       console.log("Fetched notes:", notes); // Debugging
   
       res.status(200).json(notes);
@@ -51,6 +72,7 @@ router.get("/:userId", async (req, res) => {
       res.status(500).json({ error: "Failed to fetch notes" });
     }
   });
+  
   
   
 

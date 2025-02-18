@@ -1,135 +1,117 @@
-/* Reset some default styles */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: Arial, sans-serif;
+/* General Styling */
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: #f7f7f7;
+  margin: 0;
+  padding: 0;
+}
+
+/* Main Auth Container */
+.auth-container {
+  width: 100vw;
+  max-width: 400px;
+  margin: 100px auto;
+  padding: 30px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: all 0.3s ease-in-out;
+  margin-left: 32em;
+}
+
+/* Header */
+.auth-container h2 {
+  font-size: 28px;
+  color: #333;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+/* Error Message Styling */
+.error {
+  color: #ff4d4d;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+/* Form Styling */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Input Fields */
+input[type="email"],
+input[type="password"] {
+  padding: 15px;
+  font-size: 16px;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+input[type="email"]:focus,
+input[type="password"]:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+/* Submit Button */
+button {
+  padding: 15px;
+  font-size: 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+/* Sign Up Link */
+p {
+  font-size: 14px;
+  color: #555;
+}
+
+a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .auth-container {
+    width: 90%;
+    margin: 50px auto;
+    padding: 20px;
   }
-  
-  
-  .login-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh; 
-    width: 100vw;
-    background-color: #f7fafc;
+}
+
+/* Animation for Form Elements */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
   }
-  
-  /* Styling for the form */
-  .login-form {
-    background-color: #fff;
-    padding: 40px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 450px; /* Max width for laptops */
-    box-sizing: border-box;
-    transition: all 0.3s ease;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-  
-  .login-title {
-    text-align: center;
-    font-size: 2rem; /* 32px */
-    font-weight: 700;
-    margin-bottom: 24px;
-    color: #333;
-  }
-  
-  /* Styling for error message */
-  .error-message {
-    color: #f56565;
-    font-size: 0.875rem; /* 14px */
-    margin-bottom: 16px;
-    text-align: center;
-  }
-  
-  /* Styling for input fields */
-  .input-field {
-    width: 100%;
-    padding: 14px;
-    margin-bottom: 16px;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 1rem;
-    outline: none;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  }
-  
-  .input-field:focus {
-    border-color: #3182ce;
-    box-shadow: 0 0 5px rgba(49, 130, 206, 0.5);
-  }
-  
-  /* Styling for the submit button */
-  .submit-button {
-    background-color: #3182ce;
-    color: white;
-    padding: 14px;
-    border-radius: 8px;
-    border: none;
-    font-size: 1.125rem; /* 18px */
-    cursor: pointer;
-    width: 100%;
-    transition: background-color 0.3s ease;
-  }
-  
-  .submit-button:hover {
-    background-color: #2b6cb0;
-  }
-  
-  /* Styling for the sign-up text */
-  .signup-text {
-    margin-top: 16px;
-    text-align: center;
-    font-size: 0.875rem;
-    color: #555;
-  }
-  
-  .signup-link {
-    color: #3182ce;
-  }
-  
-  .signup-link:hover {
-    text-decoration: underline;
-  }
-  
-  /* Media queries for responsiveness */
-  @media (max-width: 768px) {
-    .login-form {
-      padding: 30px;
-      max-width: 90%; /* Ensure the form is not too wide on smaller screens */
-    }
-  
-    .login-title {
-      font-size: 1.75rem; /* 28px */
-    }
-  
-    .submit-button {
-      font-size: 1rem; /* 16px */
-    }
-  
-    .input-field {
-      padding: 12px;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .login-form {
-      padding: 20px;
-      max-width: 90%;
-    }
-  
-    .login-title {
-      font-size: 1.5rem; /* 24px */
-    }
-  
-    .submit-button {
-      font-size: 0.9rem; /* 14px */
-    }
-  
-    .input-field {
-      padding: 10px;
-    }
-  }
-  
+}
+
+/* Apply animation to the auth-container */
+.auth-container {
+  animation: fadeInUp 0.8s ease-out;
+}

@@ -3,11 +3,22 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import axios from "axios";
-import "./CalendarPage.css";
+import {
+  TextField,
+  Button,
+  CssBaseline,
+  AppBar,
+  Toolbar,
+  Typography,
+  Container
+} from "@mui/material";
+import { DesktopDatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"; // Use dayjs adapter
+import "./CalendarPage.css"
 
 const CalendarPage = () => {
   const [events, setEvents] = useState([]);
-  const [newEvent, setNewEvent] = useState({ title: "", date: "", description: "" });
+  const [newEvent, setNewEvent] = useState({ title: "", date: null, description: "" });
   const userId = localStorage.getItem("userId") || ""; // Fetch logged-in userId
 
   const API_URL = "http://localhost:3000/calendar";
@@ -23,12 +34,14 @@ const CalendarPage = () => {
   const fetchEvents = async () => {
     try {
       const response = await axios.get(`${API_URL}/${userId}`);
-      setEvents(response.data.map(event => ({
-        id: event._id,
-        title: event.title,
-        start: event.date,
-        extendedProps: { description: event.description }
-      })));
+      setEvents(
+        response.data.map(event => ({
+          id: event._id,
+          title: event.title,
+          start: event.date,
+          extendedProps: { description: event.description }
+        }))
+      );
     } catch (error) {
       console.error("Error fetching events:", error);
     }
@@ -40,7 +53,7 @@ const CalendarPage = () => {
     try {
       await axios.post(API_URL, { userId, ...newEvent });
       fetchEvents();
-      setNewEvent({ title: "", date: "", description: "" });
+      setNewEvent({ title: "", date: null, description: "" });
     } catch (error) {
       console.error("Error adding event:", error);
     }
@@ -60,35 +73,45 @@ const CalendarPage = () => {
   };
 
   return (
-    <div className="calendar-container">
-      <h2>Calendar</h2>
-      <div className="event-input">
-        <input
-          type="text"
-          placeholder="Event Title"
-          value={newEvent.title}
-          onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-        />
-        <input
-          type="date"
-          value={newEvent.date}
-          onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
-        />
-        <textarea
-          placeholder="Description (optional)"
-          value={newEvent.description}
-          onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
-        />
-        <button onClick={handleAddEvent}>Add Event</button>
-      </div>
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <CssBaseline />
+    
 
-      <FullCalendar
-        plugins={[dayGridPlugin, interactionPlugin]}
-        initialView="dayGridMonth"
-        events={events}
-        eventClick={handleEventClick}
-      />
-    </div>
+      <Container>
+        <div className="calendar-container">
+          <div className="event-input">
+            <TextField
+              label="Event Title"
+              variant="outlined"
+              fullWidth
+              value={newEvent.title}
+              onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+              sx={{ marginBottom: 2 }}
+            />
+
+            {/* MUI DesktopDatePicker that opens on click */}
+            <DesktopDatePicker
+              label="Event Date"
+              inputFormat="yyyy-MM-dd"
+              value={newEvent.date}
+              onChange={(newValue) => setNewEvent({ ...newEvent, date: newValue })}
+              renderInput={(params) => <TextField {...params} fullWidth sx={{ marginBottom: 2 }} />}
+            />
+
+            <Button variant="contained" color="primary" onClick={handleAddEvent}>
+              Add Event
+            </Button>
+          </div>
+
+          <FullCalendar
+            plugins={[dayGridPlugin, interactionPlugin]}
+            initialView="dayGridMonth"
+            events={events}
+            eventClick={handleEventClick}
+          />
+        </div>
+      </Container>
+    </LocalizationProvider>
   );
 };
 

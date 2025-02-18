@@ -1,4 +1,6 @@
-import { useState, useEffect } from "react";
+/* eslint-disable no-unused-vars */
+import { useState, useEffect,} from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import "./PersonalGoal.css";
@@ -13,21 +15,26 @@ const PersonalGoal = () => {
     rewardPoints: "",
     status: "Not Started",
   });
+  const [userId] = useState(localStorage.getItem("userId") || "");
+
+  const API_URL = "http://localhost:3000/personal-goals";
 
   const [editingGoal, setEditingGoal] = useState(null);
 
   useEffect(() => {
+    if(userId){
     fetchGoals();
-  }, []);
-
-  const fetchGoals = async () => {
-    try {
-      const response = await axios.get("https://focus-fuze.onrender.com/personal-goals");
-      setGoals(response.data);
-    } catch (error) {
-      console.error("Error fetching goals:", error);
     }
-  };
+  }, [userId]);
+
+const fetchGoals = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/${userId}`);
+    setGoals(response.data);
+    } catch (error) {
+      console.error(error);
+      }
+      };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -36,21 +43,32 @@ const PersonalGoal = () => {
       [name]: value,
     }));
   };
+ 
 
   const addGoal = async () => {
     if (!newGoal.title || !newGoal.description || !newGoal.deadline || !newGoal.priority) {
       alert("Please fill in all required fields!");
       return;
     }
-
+  
+    if (!userId) {
+      alert("User not logged in. Please log in.");
+      return;
+    }
+  
     try {
-      const response = await axios.post("https://focus-fuze.onrender.com/personal-goals", newGoal);
+      const goalData = { ...newGoal, userId }; // Add userId to the goal data
+      await axios.post("http://localhost:3000/personal-goals", goalData);
       fetchGoals(); // Re-fetch goals after creation
+      fetchDashboardData(); // Fetch updated dashboard data (including total tasks count)
       resetForm();
     } catch (error) {
       console.error("Error adding goal:", error);
     }
   };
+  
+  
+  
 
   const deleteGoal = async (id) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this goal?");
@@ -127,6 +145,8 @@ const PersonalGoal = () => {
     }
   };
 
+  const navigate = useNavigate();
+
   return (
     <div className="container9">
 
@@ -137,9 +157,9 @@ const PersonalGoal = () => {
             Organize. Prioritize. Achieve. <br />
             Manage your tasks with ease <br /> and accomplish more every day.
           </p>
-          <a href="#contact" className="cta-button1">
+           <button onClick={() => navigate("/blog")} className="cta-button1">
             Get Started
-          </a>
+          </button>
         </div>
         <div className="background-overlay1">
           <div className="background-image"></div>
@@ -194,7 +214,10 @@ const PersonalGoal = () => {
 </div>
       </div>
 
+      <div className="goal-cards-container">
+
       {goals.map((goal) => (
+        
           <div key={goal._id} className="goal-card">
             <p className="txt5">Title : {goal.title}</p>
             <p className="txt7">Priority: {goal.priority}</p>
@@ -226,6 +249,7 @@ const PersonalGoal = () => {
             </div>
           </div>
         ))}
+        </div>
 
       
     </div>

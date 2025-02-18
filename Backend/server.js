@@ -6,11 +6,12 @@ const { connectToDatabase } = require('./db');  // Import database connection
 
 const authenticationRoutes = require('./authentication');
 const teamGoalRoutes = require('./teamGoal');  // Ensure these routes are set up
-// const calendarRoutes = require('./calendar');
 const personalGoalRoutes = require('./personalGoal');
-const userDashboardRoutes = require('./userDashboard');
 const notesRoutes = require("./notes");
 const calendarRoutes = require("./calendar");
+const dashboardRoutes = require("./Dashboard");
+
+
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -20,9 +21,9 @@ app.use(cors());
 
 // CORS configuration
 const allowedOrigins = [
-  'http://localhost:5179', // Frontend (React) running on port 5176
-  'http://localhost:3000',  // Backend running on port 3000
-  // Add other allowed origins here
+  'http://localhost:5179', 
+  'http://localhost:3000', 
+  'https://focus-fuze.netlify.app', 
 ];
 
 const corsOptions = {
@@ -36,7 +37,6 @@ const corsOptions = {
   credentials: true, // Allow cookies and session to be sent with requests
 };
 
-// app.use(cors(corsOptions));
 
 // Session setup
 app.use(session({
@@ -54,9 +54,8 @@ app.use(session({
 // Register Routes
 app.use('/auth', authenticationRoutes);
 app.use('/team-goals', teamGoalRoutes);
-// app.use('/calendar', calendarRoutes);
 app.use('/personal-goals', personalGoalRoutes);
-app.use('/dashboard', userDashboardRoutes);
+app.use("/dashboard", dashboardRoutes);
 app.use("/notes", notesRoutes);
 app.use("/calendar", calendarRoutes);
 

@@ -1,0 +1,115 @@
+.blog-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: 'Arial', sans-serif;
+  }
+  
+  .blog-title {
+    text-align: center;
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 30px;
+    margin-top: 1em;
+    margin-left: 5em;
+  }
+  
+  .video-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 40px;
+    width: 90vw;
+    /* border: 2px solid black; */
+    /* margin-left: 5em; */
+  }
+  
+  .video-iframe {
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    width: 90vw;
+    margin-left: 5.6em;
+    height: 80vh;
+  }
+  
+  .skip-btn {
+    margin-top: 20px;
+    background-color: #007bff;
+    color: white;
+    padding: 12px 20px;
+    font-size: 1rem;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-left: 7em;
+  }
+  
+  .skip-btn:hover {
+    background-color: #0056b3;
+  }
+  
+  .content-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    justify-content: center;
+  }
+  
+  .intro-text {
+    font-size: 1.2rem;
+    line-height: 1.6;
+    color: #555;
+    text-align: center;
+    margin-left: 15em;
+    margin-top: -1em;
+  }
+  
+  .info-boxes {
+    display: flex;
+    gap: 20px;
+    justify-content: space-between;
+    margin-left: 18em;
+  }
+  
+  .info-box {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    width: 48%;
+  }
+  
+  .info-box h2 {
+    font-size: 1.6rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 15px;
+  }
+  
+  .info-box ul {
+    list-style-type: none;
+    padding-left: 0;
+    font-size: 1.1rem;
+    color: #555;
+  }
+  
+  .info-box li {
+    margin-bottom: 10px;
+  }
+  
+  @media (max-width: 768px) {
+    .info-boxes {
+      flex-direction: column;
+    }
+  
+    .info-box {
+      width: 100%;
+    }
+  
+    .intro-text {
+      font-size: 1rem;
+    }
+  }
+  

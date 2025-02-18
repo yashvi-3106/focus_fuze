@@ -10,6 +10,10 @@ const Note = () => {
   const [content, setContent] = useState("");
   const [userId] = useState(localStorage.getItem("userId") || "");
 
+  // const userId = localStorage.getItem("userId");
+console.log("User ID in Frontend:", userId);
+
+
   const API_URL = "http://localhost:3000/notes";
 
   useEffect(() => {
