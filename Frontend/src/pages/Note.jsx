@@ -24,6 +24,7 @@ console.log("User ID in Frontend:", userId);
 
   // Fetch notes from backend for the logged-in user
   const fetchNotes = async () => {
+    if (!userId) return; // Ensure the userId exists
     try {
       const response = await axios.get(`${API_URL}/${userId}`);
       setNotes(response.data);
@@ -37,7 +38,7 @@ console.log("User ID in Frontend:", userId);
     if (!title.trim() || !content.trim()) return;
     try {
       await axios.post(API_URL, { userId, title, content });
-      fetchNotes();
+      fetchNotes(); // Re-fetch notes after adding a new one
       setTitle("");
       setContent("");
     } catch (error) {

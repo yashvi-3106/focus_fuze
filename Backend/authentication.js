@@ -45,7 +45,7 @@ router.post('/login', async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ error: 'Invalid credentials' });
 
-    req.session.userId = user._id;
+    req.session.userId = user._id; // Store userId in session
 
     // ✅ Mark user as logged in
     await User.updateOne({ _id: user._id }, { $set: { loggedIn: true } });

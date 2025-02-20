@@ -1,8 +1,7 @@
-/* eslint-disable no-unused-vars */
-import { useState, useEffect,} from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { FaEdit, FaTrash } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import "./PersonalGoal.css";
 
 const PersonalGoal = () => {
@@ -15,26 +14,27 @@ const PersonalGoal = () => {
     rewardPoints: "",
     status: "Not Started",
   });
-  const [userId] = useState(localStorage.getItem("userId") || "");
-
-  const API_URL = "http://localhost:3000/personal-goals";
 
   const [editingGoal, setEditingGoal] = useState(null);
+  const [userId, setUserId] = useState(localStorage.getItem("userId")); // Retrieve logged-in userId from localStorage
 
+  const navigate = useNavigate();
+
+  // Fetch the goals of the logged-in user
   useEffect(() => {
-    if(userId){
-    fetchGoals();
+    if (userId) {
+      fetchGoals();
     }
   }, [userId]);
 
-const fetchGoals = async () => {
-  try {
-    const response = await axios.get(`${API_URL}/${userId}`);
-    setGoals(response.data);
+  const fetchGoals = async () => {
+    try {
+      const response = await axios.get(`http://localhost:3000/personal-goals/${userId}`);
+      setGoals(response.data);
     } catch (error) {
-      console.error(error);
-      }
-      };
+      console.error("Error fetching goals:", error);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -43,39 +43,28 @@ const fetchGoals = async () => {
       [name]: value,
     }));
   };
- 
 
   const addGoal = async () => {
     if (!newGoal.title || !newGoal.description || !newGoal.deadline || !newGoal.priority) {
       alert("Please fill in all required fields!");
       return;
     }
-  
-    if (!userId) {
-      alert("User not logged in. Please log in.");
-      return;
-    }
-  
+
     try {
-      const goalData = { ...newGoal, userId }; // Add userId to the goal data
-      await axios.post("http://localhost:3000/personal-goals", goalData);
+      await axios.post("http://localhost:3000/personal-goals", { ...newGoal, userId });
       fetchGoals(); // Re-fetch goals after creation
-      fetchDashboardData(); // Fetch updated dashboard data (including total tasks count)
       resetForm();
     } catch (error) {
       console.error("Error adding goal:", error);
     }
   };
-  
-  
-  
 
   const deleteGoal = async (id) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this goal?");
     if (!confirmDelete) return;
 
     try {
-      await axios.delete(`https://focus-fuze.onrender.com/personal-goals/_id/${id}`);
+      await axios.delete(`http://localhost:3000/personal-goals/${id}`);
       fetchGoals(); // Re-fetch goals after deletion
     } catch (error) {
       console.error("Error deleting goal:", error);
@@ -93,8 +82,8 @@ const fetchGoals = async () => {
 
     try {
       const { _id, ...updatedGoalData } = newGoal;
-      await axios.patch(
-        `https://focus-fuze.onrender.com/personal-goals/_id/${editingGoal}`,
+      await axios.put(
+        `http://localhost:3000/personal-goals/${editingGoal}`,
         updatedGoalData
       );
       fetchGoals(); // Re-fetch goals after update
@@ -117,11 +106,10 @@ const fetchGoals = async () => {
     });
   };
 
-  // Handle Mark as Complete
   const markAsComplete = async (id) => {
     try {
-      await axios.patch(
-        `https://focus-fuze.onrender.com/personal-goals/_id/${id}`,
+      await axios.put(
+        `http://localhost:3000/personal-goals/${id}`,
         { status: "Completed" }
       );
       fetchGoals(); // Re-fetch goals after marking as complete
@@ -131,11 +119,10 @@ const fetchGoals = async () => {
     }
   };
 
-  // Handle Claim Reward
   const claimReward = async (id) => {
     try {
-      await axios.patch(
-        `https://focus-fuze.onrender.com/personal-goals/_id/${id}`,
+      await axios.put(
+        `http://localhost:3000/personal-goals/${id}`,
         { rewardStatus: "Claimed" }
       );
       fetchGoals(); // Re-fetch goals after claiming reward
@@ -145,11 +132,8 @@ const fetchGoals = async () => {
     }
   };
 
-  const navigate = useNavigate();
-
   return (
     <div className="container9">
-
       <div className="hero-section1">
         <div className="container1">
           <h2 className="hero-title1">Personal Goal</h2>
@@ -157,9 +141,7 @@ const fetchGoals = async () => {
             Organize. Prioritize. Achieve. <br />
             Manage your tasks with ease <br /> and accomplish more every day.
           </p>
-           <button onClick={() => navigate("/blog")} className="cta-button1">
-            Get Started
-          </button>
+          <button onClick={() => navigate("/blog")} className="cta-button1" />
         </div>
         <div className="background-overlay1">
           <div className="background-image"></div>
@@ -168,58 +150,80 @@ const fetchGoals = async () => {
           <div className="circle-effect circle-two"></div>
           <div className="circle-effect circle-three"></div>
         </div>
-
-        
       </div>
 
       <div className="personal-form">
         <div className="personal-goal">
-          <h3>Create New Goal</h3>  
-          <p className="title1">Goal Tittle</p>
-          <input type="text" name="title" value={newGoal.title} onChange={handleInputChange} placeholder="Title" className="title2" />
+          <h3>Create New Goal</h3>
+          <p className="title1">Goal Title</p>
+          <input
+            type="text"
+            name="title"
+            value={newGoal.title}
+            onChange={handleInputChange}
+            placeholder="Title"
+            className="title2"
+          />
 
           <p className="title1">Description</p>
-          <input type="text" name="description" value={newGoal.description} onChange={handleInputChange} placeholder="Description" className="title3" />
+          <input
+            type="text"
+            name="description"
+            value={newGoal.description}
+            onChange={handleInputChange}
+            placeholder="Description"
+            className="title3"
+          />
 
           <div className="flex">
             <div>
-          <p className="title1">Deadline</p>
-          <input type="date" name="deadline" value={newGoal.deadline} onChange={handleInputChange} className="title4" />
+              <p className="title1">Deadline</p>
+              <input
+                type="date"
+                name="deadline"
+                value={newGoal.deadline}
+                onChange={handleInputChange}
+                className="title4"
+              />
+            </div>
 
+            <div>
+              <p className="title1">Priority</p>
+              <select
+                name="priority"
+                value={newGoal.priority}
+                onChange={handleInputChange}
+                className="title5"
+              >
+                <option value="">Select Priority</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
+            </div>
+
+            <div>
+              <p className="title1">Reward Points</p>
+              <input
+                className="title6"
+                type="number"
+                name="rewardPoints"
+                value={newGoal.rewardPoints}
+                onChange={handleInputChange}
+                placeholder="Reward Points"
+              />
+            </div>
           </div>
-
-          <div>
-          <p className="title1">priority </p>
-          <select name="priority" value={newGoal.priority} onChange={handleInputChange} className="title5">
-                  <option value="">Select Priority</option>
-                  <option value="High">High</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Low">Low</option>
-                </select>
-
-
-          </div>
-
-          <div>
-          <p className="title1">Rewards Points </p>
-          <input className="title6" type="number" name="rewardPoints" value={newGoal.rewardPoints} onChange={handleInputChange} placeholder="Reward Points" />
-
-          </div>
-          </div>
-          {/* <button className="goal1">Add Goals</button> */}
           <button onClick={editingGoal ? updateGoal : addGoal} className="goal1">
             {editingGoal ? "Update Goal" : "Create Goal"}
           </button>
-
-</div>
+        </div>
       </div>
 
       <div className="goal-cards-container">
-
-      {goals.map((goal) => (
-        
+        {goals.map((goal) => (
           <div key={goal._id} className="goal-card">
-            <p className="txt5">Title : {goal.title}</p>
+            <p className="txt5">Title: {goal.title}</p>
             <p className="txt7">Priority: {goal.priority}</p>
             <p className="txt8">Reward Points: {goal.rewardPoints}</p>
 
@@ -243,15 +247,14 @@ const fetchGoals = async () => {
               <button onClick={() => deleteGoal(goal._id)} className="btn-delete">
                 <FaTrash />
               </button>
+
               <button onClick={() => editGoal(goal)} className="btn-edit">
                 <FaEdit />
               </button>
             </div>
           </div>
         ))}
-        </div>
-
-      
+      </div>
     </div>
   );
 };

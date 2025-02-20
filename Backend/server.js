@@ -5,11 +5,11 @@ const session = require('express-session');
 const { connectToDatabase } = require('./db');  // Import database connection
 
 const authenticationRoutes = require('./authentication');
-const teamGoalRoutes = require('./teamGoal');  // Ensure these routes are set up
+ // Ensure these routes are set up
 const personalGoalRoutes = require('./personalGoal');
 const notesRoutes = require("./notes");
 const calendarRoutes = require("./calendar");
-const dashboardRoutes = require("./Dashboard");
+
 
 
 
@@ -51,11 +51,18 @@ app.use(session({
   },
 }));
 
+app._router.stack.forEach(function (r) {
+  if (r.route && r.route.path) {
+    console.log(r.route.path);
+  }
+});
+
+
 // Register Routes
 app.use('/auth', authenticationRoutes);
-app.use('/team-goals', teamGoalRoutes);
+
 app.use('/personal-goals', personalGoalRoutes);
-app.use("/dashboard", dashboardRoutes);
+
 app.use("/notes", notesRoutes);
 app.use("/calendar", calendarRoutes);
 

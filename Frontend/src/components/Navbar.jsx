@@ -12,12 +12,7 @@ const Navbar = () => {
           <Link to="/personal-goals" className="link">
             Personal Goals
           </Link>
-          {/* <Link to="/team-goals" className="link">
-            Team Goals
-          </Link> */}
-          <Link to="/dashboard" className="link">
-            Dashboard
-          </Link>
+
           <Link to="/calendar-page" className="link">
           Calendar
           </Link>
