@@ -21,6 +21,7 @@ const SignIn = () => {
     setError("");
 
     try {
+      // eslint-disable-next-line no-unused-vars
       const response = await axios.post("http://localhost:3000/auth/register", formData);
       alert("User registered successfully!");
       navigate("/login"); // Redirect to login page after registration
@@ -31,15 +32,16 @@ const SignIn = () => {
 
   return (
     <div className="auth-container">
-      <h2>Sign Up</h2>
-      {error && <p className="error">{error}</p>}
-      <form onSubmit={handleSubmit}>
+      <h2 className="auth-title">Sign Up</h2>
+      {error && <p className="error-message">{error}</p>}
+      <form onSubmit={handleSubmit} className="auth-form">
         <input
           type="text"
           name="username"
           placeholder="Username"
           onChange={handleChange}
           required
+          className="auth-input"
         />
         <input
           type="email"
@@ -47,6 +49,7 @@ const SignIn = () => {
           placeholder="Email"
           onChange={handleChange}
           required
+          className="auth-input"
         />
         <input
           type="password"
@@ -54,10 +57,13 @@ const SignIn = () => {
           placeholder="Password"
           onChange={handleChange}
           required
+          className="auth-input"
         />
-        <button type="submit">Register</button>
+        <button type="submit" className="auth-button">Register</button>
       </form>
-      <p>Already have an account? <a href="/login">Log in</a></p>
+      <p className="auth-footer">
+        Already have an account? <a href="/login" className="auth-link">Log in</a>
+      </p>
     </div>
   );
 };

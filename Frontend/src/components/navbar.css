@@ -17,17 +17,19 @@
     display: flex;
     gap: 20px;
     padding-left: 50px;
+    margin-left: 18em;
   }
   
   .link {
     text-decoration: none;
     color: black; /* Adjust color */
-    font-size: 16px;
-    font-weight: 500;
+    font-size: 20px;
+    font-weight: 545;
     transition: color 0.3s ease;
+    
   }
   
   .link:hover {
-    color: #083ed1; 
+    color: #627bc0; 
   }
   

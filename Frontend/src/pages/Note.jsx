@@ -5,26 +5,24 @@ import "./Note.css";
 
 const Note = () => {
   const [notes, setNotes] = useState([]);
-  const [selectedNote, setSelectedNote] = useState(null);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [userId] = useState(localStorage.getItem("userId") || "");
-
-  // const userId = localStorage.getItem("userId");
-console.log("User ID in Frontend:", userId);
-
+  const [selectedNote, setSelectedNote] = useState(null);
+  
 
   const API_URL = "http://localhost:3000/notes";
+  
+  // Separate URL for summaries
 
+  // Fetch notes when component loads
   useEffect(() => {
-    if (userId) { 
+    if (userId) {
       fetchNotes();
     }
   }, [userId]);
 
-  // Fetch notes from backend for the logged-in user
   const fetchNotes = async () => {
-    if (!userId) return; // Ensure the userId exists
     try {
       const response = await axios.get(`${API_URL}/${userId}`);
       setNotes(response.data);
@@ -33,34 +31,31 @@ console.log("User ID in Frontend:", userId);
     }
   };
 
-  // Add new note
   const handleAddNote = async () => {
     if (!title.trim() || !content.trim()) return;
     try {
       await axios.post(API_URL, { userId, title, content });
-      fetchNotes(); // Re-fetch notes after adding a new one
       setTitle("");
       setContent("");
+      fetchNotes();
     } catch (error) {
       console.error("Error adding note:", error);
     }
   };
 
-  // Update existing note
   const handleUpdateNote = async () => {
     if (!selectedNote || !title.trim() || !content.trim()) return;
     try {
       await axios.put(`${API_URL}/${selectedNote._id}`, { title, content });
-      fetchNotes();
       setSelectedNote(null);
       setTitle("");
       setContent("");
+      fetchNotes();
     } catch (error) {
       console.error("Error updating note:", error);
     }
   };
 
-  // Delete note
   const handleDeleteNote = async (noteId) => {
     try {
       await axios.delete(`${API_URL}/${noteId}`);
@@ -72,8 +67,6 @@ console.log("User ID in Frontend:", userId);
 
   return (
     <div className="notes-container">
-
-
       <div className="note-input">
         <h2>{selectedNote ? "Edit Note" : "Create Note"}</h2>
         <input
@@ -97,20 +90,29 @@ console.log("User ID in Frontend:", userId);
           <div key={note._id} className="note-box">
             <h3>{note.title}</h3>
             <p>{note.content.slice(0, 50)}...</p>
+
             <div className="actions">
               <FaEdit
                 className="edit-icon"
+                style={{ color: "black" }}
                 onClick={() => {
                   setSelectedNote(note);
                   setTitle(note.title);
                   setContent(note.content);
                 }}
               />
-              <FaTrash className="delete-icon" onClick={() => handleDeleteNote(note._id)} />
+              <FaTrash
+                className="delete-icon"
+                style={{ color: "black" }}
+                onClick={() => handleDeleteNote(note._id)}
+              />
+              
             </div>
           </div>
         ))}
       </div>
+
+
     </div>
   );
 };

@@ -2,7 +2,17 @@ const express = require("express");
 const { ObjectId } = require("mongodb");
 const { getDb } = require("./db"); // Ensure you have a `getDb` function to connect to MongoDB
 
+const dotenv = require("dotenv");
 const router = express.Router();
+
+
+
+dotenv.config();
+
+
+
+
+
 
 // Create a new note
 

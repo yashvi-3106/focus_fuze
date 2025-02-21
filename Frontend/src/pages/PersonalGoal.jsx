@@ -141,7 +141,7 @@ const PersonalGoal = () => {
             Organize. Prioritize. Achieve. <br />
             Manage your tasks with ease <br /> and accomplish more every day.
           </p>
-          <button onClick={() => navigate("/blog")} className="cta-button1" />
+          <button onClick={() => navigate("/blog")} className="cta-button1" >Get Started</button>
         </div>
         <div className="background-overlay1">
           <div className="background-image"></div>
