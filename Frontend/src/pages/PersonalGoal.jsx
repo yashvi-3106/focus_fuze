@@ -106,31 +106,31 @@ const PersonalGoal = () => {
     });
   };
 
-  const markAsComplete = async (id) => {
-    try {
-      await axios.put(
-        `http://localhost:3000/personal-goals/${id}`,
-        { status: "Completed" }
-      );
-      fetchGoals(); // Re-fetch goals after marking as complete
-    } catch (error) {
-      console.error("Error marking goal as complete:", error);
-      alert("Failed to mark goal as complete.");
-    }
-  };
+  // const markAsComplete = async (id) => {
+  //   try {
+  //     await axios.put(
+  //       `http://localhost:3000/personal-goals/${id}`,
+  //       { status: "Completed" }
+  //     );
+  //     fetchGoals(); // Re-fetch goals after marking as complete
+  //   } catch (error) {
+  //     console.error("Error marking goal as complete:", error);
+  //     alert("Failed to mark goal as complete.");
+  //   }
+  // };
 
-  const claimReward = async (id) => {
-    try {
-      await axios.put(
-        `http://localhost:3000/personal-goals/${id}`,
-        { rewardStatus: "Claimed" }
-      );
-      fetchGoals(); // Re-fetch goals after claiming reward
-    } catch (error) {
-      console.error("Error claiming reward:", error);
-      alert("Failed to claim reward.");
-    }
-  };
+  // const claimReward = async (id) => {
+  //   try {
+  //     await axios.put(
+  //       `http://localhost:3000/personal-goals/${id}`,
+  //       { rewardStatus: "Claimed" }
+  //     );
+  //     fetchGoals(); // Re-fetch goals after claiming reward
+  //   } catch (error) {
+  //     console.error("Error claiming reward:", error);
+  //     alert("Failed to claim reward.");
+  //   }
+  // };
 
   return (
     <div className="container9">
@@ -143,6 +143,10 @@ const PersonalGoal = () => {
           </p>
           <button onClick={() => navigate("/blog")} className="cta-button1" >Get Started</button>
         </div>
+
+
+
+
         <div className="background-overlay1">
           <div className="background-image"></div>
           <div className="gradient-overlay1"></div>
@@ -228,21 +232,21 @@ const PersonalGoal = () => {
             <p className="txt8">Reward Points: {goal.rewardPoints}</p>
 
             <div className="goal-actions">
-              <button
+              {/* <button
                 onClick={() => markAsComplete(goal._id)}
                 className="btn-complete"
                 disabled={goal.status === "Completed"}
               >
                 {goal.status === "Completed" ? "Completed" : "Mark as Complete"}
-              </button>
+              </button> */}
 
-              <button
+              {/* <button
                 onClick={() => claimReward(goal._id)}
                 className="btn-reward"
                 disabled={goal.rewardStatus === "Claimed"}
               >
                 {goal.rewardStatus === "Claimed" ? "Reward Claimed" : "Claim Reward"}
-              </button>
+              </button> */}
 
               <button onClick={() => deleteGoal(goal._id)} className="btn-delete">
                 <FaTrash />

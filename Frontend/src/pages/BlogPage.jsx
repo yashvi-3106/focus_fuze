@@ -6,7 +6,7 @@ const BlogPage = () => {
 
   return (
     <div className="blog-container">
-      <h1 className="blog-title">The Importance of Goal Setting in Everyday Life</h1>
+      {/* <h1 className="blog-title">The Importance of Goal Setting in Everyday Life</h1> */}
 
       <div className="video-container">
         <iframe

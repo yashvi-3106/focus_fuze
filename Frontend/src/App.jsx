@@ -8,6 +8,7 @@ import CalendarPage from "./pages/CalendarPage";
 import Note from "./pages/Note"
 import BlogPage from "./pages/BlogPage";
 import Auth from "./pages/Auth";
+import SaveVideo from "./pages/SaveVideo";
 
 
 
@@ -36,6 +37,7 @@ const MainContent = () => {
         <Route path="/calendar-page" element={<CalendarPage />} />
         <Route path="/notes" element={<Note/>} />
         <Route path="/blog" element={<BlogPage />} />
+        <Route path="/save-video" element={<SaveVideo />} />
         
       </Routes>
     </div>

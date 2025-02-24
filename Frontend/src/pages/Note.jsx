@@ -110,7 +110,10 @@ const Note = () => {
             </div>
           </div>
         ))}
-      </div>
+      </div> 
+
+      
+
 
 
     </div>
