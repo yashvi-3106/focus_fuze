@@ -10,11 +10,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
     "@fullcalendar/daygrid": "^6.1.15",
     "@fullcalendar/interaction": "^6.1.15",
     "@fullcalendar/react": "^6.1.15",
+    "@mui/material": "^6.4.4",
+    "@mui/x-date-pickers": "^7.26.0",
     "axios": "^1.7.9",
     "chart.js": "^4.4.7",
+    "dayjs": "^1.11.13",
     "frontend": "file:",
     "jwt-decode": "^4.0.0",
     "react": "^18.3.1",

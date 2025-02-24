@@ -1,0 +1,106 @@
+/* Basic Styling */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f5f5;
+    margin: 0;
+    padding: 0;
+  }
+  
+  
+  .calendar-container {
+    padding-top: 2em;
+    display: flex;
+    gap: 20px;
+    width: 95vw;
+    height: 50vh;
+    overflow: hidden;
+    height: auto;
+  }
+  
+  
+  .calendar-container .fc {
+    flex: 4; /* 75% of the container */
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    width: 70vw;
+    color: black;
+   
+  }
+  
+  
+  .event-input {
+    flex: 1; /* 25% of the container */
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 15vw;
+   
+  }
+  
+ 
+  
+  /* Form inputs and button styling */
+  /* .event-input input,
+  .event-input textarea {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 22vw;
+    background-color: #f9f9f9;
+    color:black;
+  } */
+  
+  .event-input input[type="date"] {
+    width: 22vw;
+  }
+  
+  .event-input textarea {
+    height: 100px;
+    resize: none;
+  }
+  
+  .event-input button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .event-input button:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Calendar section, making sure the calendar content fits within the container */
+  .fc-view-harness {
+    width: 100% !important;
+  }
+  
+  .fc-toolbar {
+    margin-bottom: 20px;
+  }
+  
+  /* Input field labels */
+  .event-input input::placeholder,
+  .event-input textarea::placeholder {
+    color: #888;
+  }
+  
+  /* Add some padding around the overall container */
+  .calendar-container {
+    margin-right: 1em;
+    margin-top: 2em;
+    
+
+  }
+  

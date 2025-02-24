@@ -1,8 +1,9 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import "./Login.css"
 
-const LogIn = () => {
+const Auth = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
@@ -60,5 +61,5 @@ const LogIn = () => {
   );
 };
 
-export default LogIn;
+export default Auth;
 

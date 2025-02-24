@@ -4,76 +4,116 @@ const { getDb } = require('./db');
 
 const router = express.Router();
 
-// GET all goals
-router.get('/', async (req, res) => {
+// GET all goals for a specific user
+router.get('/:userId', async (req, res) => {
+  const { userId } = req.params;
+  console.log("Fetching goals for userId (as string):", userId);
+
   try {
     const db = getDb();
-    const goals = db.collection('goals');
-    const allGoals = await goals.find().toArray();
-    res.status(200).json(allGoals);
+    const goalsCollection = db.collection('goals');
+
+    // Convert userId to ObjectId
+    const userObjectId = new ObjectId(userId);
+
+    // Fetch only the goals belonging to the logged-in user
+    const goals = await goalsCollection.find({ userId: userObjectId }).toArray();
+    console.log("Fetched goals:", goals);
+
+    res.status(200).json(goals);
   } catch (err) {
-    res.status(500).send('Error fetching goals: ' + err.message);
+    console.error("Error fetching goals:", err);
+    res.status(500).json({ error: "Failed to fetch goals" });
   }
 });
 
 // POST a new goal
-router.post('/', async (req, res) => {
+// POST a new goal
+router.post("/", async (req, res) => {
+  const { userId, title, description, deadline, priority, rewardPoints, status } = req.body;
+  
+  if (!userId || !title || !description || !deadline || !priority || !rewardPoints || !status) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
   try {
-    const newGoal = req.body;
     const db = getDb();
-    const goals = db.collection('goals');
-    const result = await goals.insertOne(newGoal);
-    res.status(201).send({ insertedId: result.insertedId });
+    const goalsCollection = db.collection("goals");
+
+    const newGoal = {
+      userId: new ObjectId(userId),
+      title,
+      description,
+      deadline,
+      priority,
+      rewardPoints,
+      status,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const result = await goalsCollection.insertOne(newGoal);
+    res.status(201).json({ message: "Goal created successfully", goalId: result.insertedId });
   } catch (err) {
-    res.status(500).send('Error adding goal: ' + err.message);
+    console.error("Error creating goal:", err);
+    res.status(500).json({ error: "Failed to create goal" });
   }
 });
+
 
 // PATCH (partially update) a goal by ID
-router.patch('/_id/:_oid', async (req, res) => {
-  try {
-    const _oid = new ObjectId(req.params._oid);
-    const updates = req.body;
-    const db = getDb();
-    const goals = db.collection('goals');
-    const result = await goals.updateOne({ _id: _oid }, { $set: updates });
-    res.status(200).send(`${result.modifiedCount} document(s) updated`);
-  } catch (err) {
-    res.status(500).send('Error partially updating goal: ' + err.message);
+router.put("/:goalId", async (req, res) => {
+  const { goalId } = req.params;
+  const { title, description, deadline, priority } = req.body;
+
+  // Validate the required fields
+  if (!title || !description || !deadline || !priority) {
+    return res.status(400).json({ error: "Title, description, deadline, and priority are required" });
   }
-});
 
-// PATCH (partially update) a goal by ID (Mark as Complete or Claim Reward)
-router.patch('/_id/:_oid', async (req, res) => {
   try {
-    const _oid = new ObjectId(req.params._oid);
-    const { status, rewardStatus } = req.body; // Update status or rewardStatus
     const db = getDb();
-    const goals = db.collection('goals');
-    const updates = {};
-    
-    if (status) updates.status = status;
-    if (rewardStatus) updates.rewardStatus = rewardStatus;
+    const goalsCollection = db.collection("goals");
 
-    const result = await goals.updateOne({ _id: _oid }, { $set: updates });
-    res.status(200).send(`${result.modifiedCount} document(s) updated`);
+    // Update the goal in the database
+    const result = await goalsCollection.updateOne(
+      { _id: new ObjectId(goalId) },
+      { $set: { title, description, deadline, priority, updatedAt: new Date() } }
+    );
+
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({ error: "Goal not found or not updated" });
+    }
+
+    res.status(200).json({ message: "Goal updated successfully" });
   } catch (err) {
-    res.status(500).send('Error updating goal: ' + err.message);
+    console.error("Error updating goal:", err);
+    res.status(500).json({ error: "Failed to update goal" });
   }
 });
 
 
 // DELETE a goal by ID
-router.delete('/_id/:_oid', async (req, res) => {
-  try {
-    const _oid = new ObjectId(req.params._oid);
-    const db = getDb();
-    const goals = db.collection('goals');
-    const result = await goals.deleteOne({ _id: _oid });
-    res.status(200).send(`${result.deletedCount} document(s) deleted`);
-  } catch (err) {
-    res.status(500).send('Error deleting goal: ' + err.message);
-  }
+router.delete("/:goalId", async (req, res) => {
+    // Fix the variable name here
+const { goalId } = req.params;
+
+
+    try {
+        const db = getDb();
+        const goalsCollection = db.collection("goals");
+
+        const result = await goalsCollection.deleteOne({ _id: new ObjectId(goalId) });
+
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ error: "goal not found" });
+        }
+
+        res.status(200).json({ message: "goal deleted successfully" });
+    } catch (err) {
+        console.error("Error deleting goal:", err);
+        res.status(500).json({ error: "Failed to delete goal" });
+    }
 });
 
 module.exports = router;
