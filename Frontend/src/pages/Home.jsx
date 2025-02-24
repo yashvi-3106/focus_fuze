@@ -14,41 +14,27 @@ const HomePage = () => {
             Get Started 
           </a>
         </div>
+
+        <div className="rect" >
+        <img className="icon-goal" src="https://png.pngtree.com/png-vector/20190716/ourmid/pngtree-goal-icon-for-your-project-png-image_1545201.jpg"   ></img>
+        </div>
+        <div className="rect1" >
+        <img className="icon-goal1" src="https://png.pngtree.com/png-vector/20190716/ourmid/pngtree-goal-icon-for-your-project-png-image_1545201.jpg"   ></img>
+        </div>
+        <div className="rect2" >
+        <img className="icon-goal2" src="https://png.pngtree.com/png-vector/20190716/ourmid/pngtree-goal-icon-for-your-project-png-image_1545201.jpg"   ></img>
+        </div>
+
         <div className="background-overlay">
           <div className="circle-effect circle-one"></div>
           <div className="circle-effect circle-two"></div>
           <div className="circle-effect circle-three"></div>
         </div>
 
-        
-        <div className="image-container1">
-          <img
-            src="https://img.freepik.com/premium-vector/task-management-illustration-concept-flat-illustration-isolated-white-background_701961-5187.jpg"
-            alt="Image 1"
-            className="image1"
-          />
-        </div>
-        <div className="image-container2">
-          <img
-            src="https://img.freepik.com/premium-vector/task-management-illustration-concept-flat-illustration-isolated-white-background_701961-5187.jpg"
-            alt="Image 1"
-            className="image1"
-          />
-        </div>
-        <div className="image-container3">
-          <img
-            src="https://img.freepik.com/premium-vector/task-management-illustration-concept-flat-illustration-isolated-white-background_701961-5187.jpg"
-            alt="Image 1"
-            className="image1"
-          />
-        </div>
-        <div className="image-container4">
-          <img
-            src="https://img.freepik.com/premium-vector/task-management-illustration-concept-flat-illustration-isolated-white-background_701961-5187.jpg"
-            alt="Image 1"
-            className="image1"
-          />
-        </div>
+
+      
+
+       
       </div>
 
       <div className="features">Features</div>

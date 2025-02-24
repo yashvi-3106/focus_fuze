@@ -5,12 +5,10 @@ const session = require('express-session');
 const { connectToDatabase } = require('./db');  // Import database connection
 
 const authenticationRoutes = require('./authentication');
- // Ensure these routes are set up
 const personalGoalRoutes = require('./personalGoal');
 const notesRoutes = require("./notes");
 const calendarRoutes = require("./calendar");
-
-
+const savedVideosRoutes = require("./SavedVideos");
 
 
 const app = express();
@@ -65,7 +63,7 @@ app.use('/personal-goals', personalGoalRoutes);
 
 app.use("/notes", notesRoutes);
 app.use("/calendar", calendarRoutes);
-
+app.use("/api/videos", savedVideosRoutes);
 
 app.get("/", (req, res) => {
   res.send("Notes API is running...");

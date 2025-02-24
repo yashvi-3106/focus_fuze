@@ -5,15 +5,6 @@
   box-sizing: border-box;
 }
 
-body {
-  font-family: 'Arial', sans-serif;
-  background-color: #f0f2f5;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-
 .auth-container {
   background-color: #fff;
   border-radius: 8px;
@@ -22,6 +13,7 @@ body {
   max-width: 400px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   animation: fadeIn 1s ease-out;
+
 }
 
 .auth-title {
@@ -44,7 +36,7 @@ body {
   border: 1px solid #ccc;
   border-radius: 4px;
   transition: border-color 0.3s ease-in-out;
-  width: 100%; /* Ensure inputs take full width */
+  width: 100%; 
 }
 
 .auth-input:focus {

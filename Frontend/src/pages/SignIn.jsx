@@ -42,6 +42,7 @@ const SignIn = () => {
           onChange={handleChange}
           required
           className="auth-input"
+          style={{padding:"12px", border:"2px solid black", borderRadius:"6px", width:"93%"}}
         />
         <input
           type="email"

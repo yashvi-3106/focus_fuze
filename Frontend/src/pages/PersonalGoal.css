@@ -13,14 +13,15 @@
 
   .hero-section1 {
     position: relative;
-    background: linear-gradient(to right, #1d4ed8, #7c3aed);
+    /* background: linear-gradient(to right, #1d4ed8, #7c3aed); */
     color: white;
     padding: 5rem 1rem;
     overflow: hidden;
     border: 2px solid black;
     height: 50vh;
     width: 100vw;
-    margin-top: 2.5em;
+    margin-top: -1.9em;
+    background-color: black;
     
   }
   
@@ -32,7 +33,7 @@
   .hero-title1 {
     font-size: 3rem;
     font-weight: 800;
-    margin-bottom: 1rem;
+   margin-top: 1em;
     margin-left: 3.5em;
     text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
     animation: fadeInUp 1s ease-out;
@@ -46,11 +47,12 @@
     text-shadow: 1px 1px 8px rgba(0, 0, 0, 0.4);
     animation: fadeInUp 1s ease-out 0.2s;
     color: white;
+    margin-top: -1em;
   }
   .cta-button1{
   background-color: #fbbf24;
   color: #1e40af;
-  margin-left: 15em;
+  margin-left: 15.5em;
   padding: 0.75rem 2rem;
   font-weight: 600;
   border-radius: 9999px;
@@ -85,7 +87,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(to right, #1d4ed8, #7c3aed);
+    /* background: linear-gradient(to right, #1d4ed8, #7c3aed); */
     opacity: 0.75;
   }
   
