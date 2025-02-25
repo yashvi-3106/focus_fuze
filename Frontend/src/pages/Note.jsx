@@ -1,21 +1,19 @@
-import { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import axios from "axios";
 import { FaEdit, FaTrash } from "react-icons/fa";
+import ReactQuill from "react-quill";  // Import Quill Editor
+import "react-quill/dist/quill.snow.css"; // Import Quill styles
 import "./Note.css";
 
 const Note = () => {
   const [notes, setNotes] = useState([]);
   const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
+  const [content, setContent] = useState(""); // Use for Quill content
   const [userId] = useState(localStorage.getItem("userId") || "");
   const [selectedNote, setSelectedNote] = useState(null);
-  
 
   const API_URL = "http://localhost:3000/notes";
-  
-  // Separate URL for summaries
 
-  // Fetch notes when component loads
   useEffect(() => {
     if (userId) {
       fetchNotes();
@@ -75,11 +73,30 @@ const Note = () => {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
-        <textarea
-          placeholder="Write your note..."
+
+        {/* ReactQuill Editor */}
+        <ReactQuill
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={setContent} // Ensure the editor updates `content` state
+          theme="snow"
+          className="note-input"
+           modules={{
+    toolbar: [
+      [{ header: [1, 2, 3, false] }], // Heading options
+      [{ font: [] }], // Font family
+      [{ size: [] }], // Font size
+      [{ color: [] }, { background: [] }], // Font and background color options
+      ["bold", "italic", "underline", "strike"], // Text formatting
+      [{ script: "sub" }, { script: "super" }], // Subscript & Superscript
+      [{ list: "ordered" }, { list: "bullet" }], // Lists
+      [{ align: [] }], // Text alignment
+      ["link"], // Links and images
+      ["clean"], // Clear formatting
+    ],
+  }}
+          
         />
+
         <button onClick={selectedNote ? handleUpdateNote : handleAddNote}>
           {selectedNote ? "Update Note" : "Add Note"}
         </button>
@@ -89,7 +106,8 @@ const Note = () => {
         {notes.map((note) => (
           <div key={note._id} className="note-box">
             <h3>{note.title}</h3>
-            <p>{note.content.slice(0, 50)}...</p>
+            {/* Render HTML content safely */}
+            <div dangerouslySetInnerHTML={{ __html: note.content }} />
 
             <div className="actions">
               <FaEdit
@@ -106,16 +124,10 @@ const Note = () => {
                 style={{ color: "black" }}
                 onClick={() => handleDeleteNote(note._id)}
               />
-              
             </div>
           </div>
         ))}
-      </div> 
-
-      
-
-
-
+      </div>
     </div>
   );
 };

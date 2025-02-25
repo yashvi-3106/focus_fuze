@@ -15,7 +15,7 @@ body {
   gap: 20px;
   width: 97vw;
   height: 90vh;
-  margin-top: 2em;
+  margin-top: 2.6em;
 }
 
 /* Left side: Note creation (title, description box) */
@@ -67,6 +67,7 @@ body {
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s;
+  margin-top: 2em;
 }
 
 .note-input button:hover {
@@ -199,3 +200,23 @@ button {
 button:hover {
   background: #0056b3;
 }
+
+.rich-text-editor {
+  min-height: 60vh;
+  font-size: 16px;
+  background-color: #fff;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.ql-editor {
+  min-height: 150px;
+  font-size: 16px;
+  color: black;
+}
+
+.ql-toolbar {
+  background-color: white;
+  border-radius: 5px;
+}
+

@@ -116,7 +116,7 @@
   left: 75%;
   width: 8rem;
   height: 8rem;
-  background-color: #a855f7;
+  /* background-color: #a855f7; */
   transform: translate(-50%, -50%);
   opacity: 0.4;
   filter: blur(40px);
