@@ -5,12 +5,14 @@ const router = express.Router();
 
 // Define Mongoose Schema and Model
 const videoSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, required: true }, // Associate video with user
-  videoUrl: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now },
-});
-
-const Video = mongoose.model("Video", videoSchema);
+    userId: { type: mongoose.Schema.Types.ObjectId, required: true }, // Associate video with user
+    videoUrl: { type: String, required: true },
+    notes: { type: String, default: "" }, // Add a field to store notes
+    createdAt: { type: Date, default: Date.now },
+  });
+  
+  const Video = mongoose.model("Video", videoSchema);
+  
 
 // Route to Save a Video (for a specific user)
 router.post("/save", async (req, res) => {
@@ -85,6 +87,49 @@ router.delete("/delete/:videoId", async (req, res) => {
 });
 
 
+router.post("/save-note/:videoId", async (req, res) => {
+    try {
+      const { videoId } = req.params;
+      const { userId, notes } = req.body;
+  
+      if (!mongoose.Types.ObjectId.isValid(videoId) || !mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(400).json({ message: "Invalid ID" });
+      }
+  
+      const video = await Video.findOne({ _id: videoId, userId });
+  
+      if (!video) {
+        return res.status(404).json({ message: "Video not found or does not belong to you" });
+      }
+  
+      video.notes = notes; // Update notes field
+      await video.save();
+  
+      res.status(200).json({ message: "Notes saved successfully!" });
+    } catch (error) {
+      console.error("Error saving notes:", error);
+      res.status(500).json({ message: "Server Error" });
+    }
+  });
+
+// ✅ Fetch notes for a saved video
+router.get("/get-note/:videoId/:userId", async (req, res) => {
+    const { videoId, userId } = req.params;
+  
+    try {
+      const video = await Video.findOne({ _id: videoId, userId });
+  
+      if (!video) {
+        return res.status(404).json({ message: "No notes found for this video." });
+      }
+  
+      res.json({ notes: video.notes });
+    } catch (error) {
+      console.error("Error fetching notes:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+  
   
 
 module.exports = router;
