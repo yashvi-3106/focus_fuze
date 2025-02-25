@@ -1,16 +1,17 @@
-import  { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { FaEdit, FaTrash } from "react-icons/fa";
-import ReactQuill from "react-quill";  // Import Quill Editor
-import "react-quill/dist/quill.snow.css"; // Import Quill styles
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 import "./Note.css";
 
 const Note = () => {
   const [notes, setNotes] = useState([]);
   const [title, setTitle] = useState("");
-  const [content, setContent] = useState(""); // Use for Quill content
+  const [content, setContent] = useState("");
   const [userId] = useState(localStorage.getItem("userId") || "");
   const [selectedNote, setSelectedNote] = useState(null);
+  const [loading, setLoading] = useState(false); // Loader state
 
   const API_URL = "http://localhost:3000/notes";
 
@@ -21,113 +22,144 @@ const Note = () => {
   }, [userId]);
 
   const fetchNotes = async () => {
+    setLoading(true);
     try {
       const response = await axios.get(`${API_URL}/${userId}`);
-      setNotes(response.data);
+      setTimeout(() => {
+        setNotes(response.data);
+        setLoading(false);
+      }, 1000);
     } catch (error) {
       console.error("Error fetching notes:", error);
+      setLoading(false);
     }
   };
 
   const handleAddNote = async () => {
     if (!title.trim() || !content.trim()) return;
+    setLoading(true);
     try {
       await axios.post(API_URL, { userId, title, content });
-      setTitle("");
-      setContent("");
-      fetchNotes();
+      setTimeout(() => {
+        setTitle("");
+        setContent("");
+        fetchNotes();
+        setLoading(false);
+      }, 1000);
     } catch (error) {
       console.error("Error adding note:", error);
+      setLoading(false);
     }
   };
 
   const handleUpdateNote = async () => {
     if (!selectedNote || !title.trim() || !content.trim()) return;
+    setLoading(true);
     try {
       await axios.put(`${API_URL}/${selectedNote._id}`, { title, content });
-      setSelectedNote(null);
-      setTitle("");
-      setContent("");
-      fetchNotes();
+      setTimeout(() => {
+        setSelectedNote(null);
+        setTitle("");
+        setContent("");
+        fetchNotes();
+        setLoading(false);
+      }, 1000);
     } catch (error) {
       console.error("Error updating note:", error);
+      setLoading(false);
     }
   };
 
   const handleDeleteNote = async (noteId) => {
+    setLoading(true);
     try {
       await axios.delete(`${API_URL}/${noteId}`);
-      fetchNotes();
+      setTimeout(() => {
+        fetchNotes();
+        setLoading(false);
+      }, 1000);
     } catch (error) {
       console.error("Error deleting note:", error);
+      setLoading(false);
     }
   };
 
   return (
     <div className="notes-container">
-      <div className="note-input">
-        <h2>{selectedNote ? "Edit Note" : "Create Note"}</h2>
-        <input
-          type="text"
-          placeholder="Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
+      {loading && (
+        <div className="loader-container2">
+          <img
+            src="https://cdn-icons-png.freepik.com/256/11857/11857533.png"
+            alt="Loading..."
+            className="loader2"
+          />
+        </div>
+      )}
 
-        {/* ReactQuill Editor */}
-        <ReactQuill
-          value={content}
-          onChange={setContent} // Ensure the editor updates `content` state
-          theme="snow"
-          className="note-input"
-           modules={{
-    toolbar: [
-      [{ header: [1, 2, 3, false] }], // Heading options
-      [{ font: [] }], // Font family
-      [{ size: [] }], // Font size
-      [{ color: [] }, { background: [] }], // Font and background color options
-      ["bold", "italic", "underline", "strike"], // Text formatting
-      [{ script: "sub" }, { script: "super" }], // Subscript & Superscript
-      [{ list: "ordered" }, { list: "bullet" }], // Lists
-      [{ align: [] }], // Text alignment
-      ["link"], // Links and images
-      ["clean"], // Clear formatting
-    ],
-  }}
-          
-        />
+      {!loading && (
+        <>
+          <div className="note-input">
+            <h2>{selectedNote ? "Edit Note" : "Create Note"}</h2>
+            <input
+              type="text"
+              placeholder="Title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
 
-        <button onClick={selectedNote ? handleUpdateNote : handleAddNote}>
-          {selectedNote ? "Update Note" : "Add Note"}
-        </button>
-      </div>
+            <ReactQuill
+              value={content}
+              onChange={setContent}
+              theme="snow"
+              className="note-input quill-editor"
+              modules={{
+                toolbar: [
+                  [{ header: [1, 2, 3, false] }],
+                  [{ font: [] }],
+                  [{ size: [] }],
+                  [{ color: [] }, { background: [] }],
+                  ["bold", "italic", "underline", "strike"],
+                  [{ script: "sub" }, { script: "super" }],
+                  [{ list: "ordered" }, { list: "bullet" }],
+                  [{ align: [] }],
+                  ["link"],
+                  ["clean"],
+                ],
+              }}
+            />
 
-      <div className="notes-grid">
-        {notes.map((note) => (
-          <div key={note._id} className="note-box">
-            <h3>{note.title}</h3>
-            {/* Render HTML content safely */}
-            <div dangerouslySetInnerHTML={{ __html: note.content }} />
-
-            <div className="actions">
-              <FaEdit
-                className="edit-icon"
-                style={{ color: "black" }}
-                onClick={() => {
-                  setSelectedNote(note);
-                  setTitle(note.title);
-                  setContent(note.content);
-                }}
-              />
-              <FaTrash
-                className="delete-icon"
-                style={{ color: "black" }}
-                onClick={() => handleDeleteNote(note._id)}
-              />
-            </div>
+            <button onClick={selectedNote ? handleUpdateNote : handleAddNote}>
+              {selectedNote ? "Update Note" : "Add Note"}
+            </button>
           </div>
-        ))}
-      </div>
+
+          <div className="notes-grid">
+            {notes.map((note) => (
+              <div key={note._id} className="note-box">
+                <h3>{note.title}</h3>
+                <div dangerouslySetInnerHTML={{ __html: note.content }} />
+
+                <div className="actions">
+                  <FaEdit
+                    className="edit-icon"
+                    style={{ color: "black" }}
+                    onClick={() => {
+                      setSelectedNote(note);
+                      setTitle(note.title);
+                      setContent(note.content);
+                    }}
+                  />
+                  <FaTrash
+                    className="delete-icon"
+                    style={{ color: "black" }}
+                    onClick={() => handleDeleteNote(note._id)}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 };

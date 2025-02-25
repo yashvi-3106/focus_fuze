@@ -1,6 +1,9 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify"; // Import toast
+import "react-toastify/dist/ReactToastify.css"; // Import toast styles
+import "./SignIn.css";
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -11,6 +14,7 @@ const SignIn = () => {
   });
 
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false); // Loader state
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -20,18 +24,38 @@ const SignIn = () => {
     e.preventDefault();
     setError("");
 
+    setLoading(true); // Start loading
+    const start = Date.now();
+
     try {
-      // eslint-disable-next-line no-unused-vars
-      const response = await axios.post("http://localhost:3000/auth/register", formData);
-      alert("User registered successfully!");
-      navigate("/login"); // Redirect to login page after registration
+      await axios.post("http://localhost:3000/auth/register", formData);
+      toast.success("User registered successfully! 🎉"); // Success toast
+
+      const elapsed = Date.now() - start;
+      setTimeout(() => {
+        setLoading(false);
+        navigate("/login"); // Redirect after 1 sec minimum
+      }, Math.max(0, 1000 - elapsed));
     } catch (err) {
-      setError(err.response?.data?.error || "Failed to register.");
+      setLoading(false);
+      const errorMessage = err.response?.data?.error || "Failed to register.";
+      setError(errorMessage);
+      toast.error(errorMessage); // Error toast
     }
   };
 
   return (
     <div className="auth-container">
+      {loading && (
+        <div className="loader-container6">
+          <img
+            src="https://cdn-icons-png.freepik.com/256/11857/11857533.png?semt=ais_hybrid"
+            alt="Loading..."
+            className="custom-loader6"
+          />
+        </div>
+      )}
+
       <h2 className="auth-title">Sign Up</h2>
       {error && <p className="error-message">{error}</p>}
       <form onSubmit={handleSubmit} className="auth-form">
@@ -42,7 +66,6 @@ const SignIn = () => {
           onChange={handleChange}
           required
           className="auth-input"
-          style={{padding:"12px", border:"2px solid black", borderRadius:"6px", width:"93%"}}
         />
         <input
           type="email"

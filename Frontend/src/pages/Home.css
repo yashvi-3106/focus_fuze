@@ -19,10 +19,11 @@
   padding: 5rem 1rem;
   overflow: hidden;
   border: 2px solid black;
-  height: 57vh;
-  width: 100vw;
+  height: 70vh;
+  width: 100.5vw;
   margin-top: -5.1em;
   /* border: 2px solid pink; */
+  margin-right: 1.2em;
 }
 
 .container {
@@ -53,6 +54,7 @@
 .cta-button {
   background-color: #fbbf24;
   color: #1e40af;
+  margin-top: 5em;
   margin-left: -45em;
   padding: 0.75rem 2rem;
   font-weight: 600;
@@ -62,6 +64,8 @@
   transition: all 0.3s ease;
   transform: scale(1);
   animation: fadeInUp 1s ease-out 0.4s;
+  position: relative;
+  top: 2em;
 }
 
 .cta-button:hover {

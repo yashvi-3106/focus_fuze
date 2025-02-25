@@ -2,10 +2,13 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./PersonalGoal.css";
 
 const PersonalGoal = () => {
   const [goals, setGoals] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [newGoal, setNewGoal] = useState({
     title: "",
     description: "",
@@ -16,11 +19,10 @@ const PersonalGoal = () => {
   });
 
   const [editingGoal, setEditingGoal] = useState(null);
-  const [userId, setUserId] = useState(localStorage.getItem("userId")); // Retrieve logged-in userId from localStorage
+  const [userId, setUserId] = useState(localStorage.getItem("userId"));
 
   const navigate = useNavigate();
 
-  // Fetch the goals of the logged-in user
   useEffect(() => {
     if (userId) {
       fetchGoals();
@@ -28,11 +30,17 @@ const PersonalGoal = () => {
   }, [userId]);
 
   const fetchGoals = async () => {
+    setLoading(true);
     try {
       const response = await axios.get(`http://localhost:3000/personal-goals/${userId}`);
-      setGoals(response.data);
+      setTimeout(() => {
+        setGoals(response.data);
+        setLoading(false);
+      }, 1000);
     } catch (error) {
       console.error("Error fetching goals:", error);
+      setLoading(false);
+      toast.error("Failed to fetch goals.");
     }
   };
 
@@ -46,29 +54,39 @@ const PersonalGoal = () => {
 
   const addGoal = async () => {
     if (!newGoal.title || !newGoal.description || !newGoal.deadline || !newGoal.priority) {
-      alert("Please fill in all required fields!");
+      toast.error("Please fill in all required fields!");
       return;
     }
 
+    setLoading(true);
     try {
       await axios.post("http://localhost:3000/personal-goals", { ...newGoal, userId });
-      fetchGoals(); // Re-fetch goals after creation
-      resetForm();
+      setTimeout(() => {
+        fetchGoals();
+        resetForm();
+        setLoading(false);
+        toast.success("Goal added successfully!");
+      }, 1000);
     } catch (error) {
       console.error("Error adding goal:", error);
+      setLoading(false);
+      toast.error("Failed to add goal.");
     }
   };
 
   const deleteGoal = async (id) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this goal?");
-    if (!confirmDelete) return;
-
+    setLoading(true);
     try {
       await axios.delete(`http://localhost:3000/personal-goals/${id}`);
-      fetchGoals(); // Re-fetch goals after deletion
+      setTimeout(() => {
+        fetchGoals();
+        setLoading(false);
+        toast.success("Goal deleted successfully!");
+      }, 1000);
     } catch (error) {
       console.error("Error deleting goal:", error);
-      alert("Failed to delete goal. Please check the API endpoint.");
+      toast.error("Failed to delete goal.");
+      setLoading(false);
     }
   };
 
@@ -80,18 +98,21 @@ const PersonalGoal = () => {
   const updateGoal = async () => {
     if (!editingGoal) return;
 
+    setLoading(true);
     try {
       const { _id, ...updatedGoalData } = newGoal;
-      await axios.put(
-        `http://localhost:3000/personal-goals/${editingGoal}`,
-        updatedGoalData
-      );
-      fetchGoals(); // Re-fetch goals after update
-      setEditingGoal(null);
-      resetForm();
+      await axios.put(`http://localhost:3000/personal-goals/${editingGoal}`, updatedGoalData);
+      setTimeout(() => {
+        fetchGoals();
+        setEditingGoal(null);
+        resetForm();
+        setLoading(false);
+        toast.success("Goal updated successfully!");
+      }, 1000);
     } catch (error) {
       console.error("Error updating goal:", error);
-      alert("Failed to update goal. Please check the API.");
+      toast.error("Failed to update goal.");
+      setLoading(false);
     }
   };
 
@@ -106,32 +127,6 @@ const PersonalGoal = () => {
     });
   };
 
-  // const markAsComplete = async (id) => {
-  //   try {
-  //     await axios.put(
-  //       `http://localhost:3000/personal-goals/${id}`,
-  //       { status: "Completed" }
-  //     );
-  //     fetchGoals(); // Re-fetch goals after marking as complete
-  //   } catch (error) {
-  //     console.error("Error marking goal as complete:", error);
-  //     alert("Failed to mark goal as complete.");
-  //   }
-  // };
-
-  // const claimReward = async (id) => {
-  //   try {
-  //     await axios.put(
-  //       `http://localhost:3000/personal-goals/${id}`,
-  //       { rewardStatus: "Claimed" }
-  //     );
-  //     fetchGoals(); // Re-fetch goals after claiming reward
-  //   } catch (error) {
-  //     console.error("Error claiming reward:", error);
-  //     alert("Failed to claim reward.");
-  //   }
-  // };
-
   return (
     <div className="container9">
       <div className="hero-section1">
@@ -141,11 +136,10 @@ const PersonalGoal = () => {
             Organize. Prioritize. Achieve. <br />
             Manage your tasks with ease <br /> and accomplish more every day.
           </p>
-          <button onClick={() => navigate("/blog")} className="cta-button1" >Get Started</button>
+          <button onClick={() => navigate("/blog")} className="cta-button1">
+            Get Started
+          </button>
         </div>
-
-
-
 
         <div className="background-overlay1">
           <div className="background-image"></div>
@@ -156,9 +150,19 @@ const PersonalGoal = () => {
         </div>
       </div>
 
+      {loading && (
+        <div className="loader-container">
+          <img
+            src="https://cdn-icons-png.freepik.com/256/11857/11857533.png"
+            alt="Loading..."
+            className="loader"
+          />
+        </div>
+      )}
+
       <div className="personal-form">
         <div className="personal-goal">
-          <h3>Create New Goal</h3>
+          <h3>{editingGoal ? "Edit Goal" : "Create New Goal"}</h3>
           <p className="title1">Goal Title</p>
           <input
             type="text"
@@ -225,39 +229,23 @@ const PersonalGoal = () => {
       </div>
 
       <div className="goal-cards-container">
-        {goals.map((goal) => (
-          <div key={goal._id} className="goal-card">
-            <p className="txt5">Title: {goal.title}</p>
-            <p className="txt7">Priority: {goal.priority}</p>
-            <p className="txt8">Reward Points: {goal.rewardPoints}</p>
+        {!loading &&
+          goals.map((goal) => (
+            <div key={goal._id} className="goal-card">
+              <p className="txt5">Title: {goal.title}</p>
+              <p className="txt7">Priority: {goal.priority}</p>
+              <p className="txt8">Reward Points: {goal.rewardPoints}</p>
 
-            <div className="goal-actions">
-              {/* <button
-                onClick={() => markAsComplete(goal._id)}
-                className="btn-complete"
-                disabled={goal.status === "Completed"}
-              >
-                {goal.status === "Completed" ? "Completed" : "Mark as Complete"}
-              </button> */}
-
-              {/* <button
-                onClick={() => claimReward(goal._id)}
-                className="btn-reward"
-                disabled={goal.rewardStatus === "Claimed"}
-              >
-                {goal.rewardStatus === "Claimed" ? "Reward Claimed" : "Claim Reward"}
-              </button> */}
-
-              <button onClick={() => deleteGoal(goal._id)} className="btn-delete">
-                <FaTrash />
-              </button>
-
-              <button onClick={() => editGoal(goal)} className="btn-edit">
-                <FaEdit />
-              </button>
+              <div className="goal-actions">
+                <button onClick={() => deleteGoal(goal._id)} className="btn-delete">
+                  <FaTrash />
+                </button>
+                <button onClick={() => editGoal(goal)} className="btn-edit">
+                  <FaEdit />
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
       </div>
     </div>
   );
