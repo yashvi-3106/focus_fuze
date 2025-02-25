@@ -1,20 +1,14 @@
-/* Basic Styling */
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f5f5f5;
-    margin: 0;
-    padding: 0;
-  }
-  
+
   
   .calendar-container {
-    padding-top: 2em;
+    padding-top: 5em;
     display: flex;
     gap: 20px;
     width: 95vw;
     height: 50vh;
     overflow: hidden;
     height: auto;
+  
   }
   
   
@@ -102,5 +96,31 @@ body {
     margin-top: 2em;
     
 
+  }
+  
+
+  .loader-container1 {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100vw;
+    background-color: rgba(255, 255, 255, 0.8);
+    z-index: 1000;
+  }
+  
+  .custom-loader1 {
+    width: 80px;
+    height: 80px;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
   }
   

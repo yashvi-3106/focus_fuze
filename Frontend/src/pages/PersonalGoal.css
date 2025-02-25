@@ -18,7 +18,7 @@
     padding: 5rem 1rem;
     overflow: hidden;
     border: 2px solid black;
-    height: 50vh;
+    height: 65vh;
     width: 100vw;
     margin-top: -1.9em;
     background-color: black;
@@ -47,7 +47,7 @@
     text-shadow: 1px 1px 8px rgba(0, 0, 0, 0.4);
     animation: fadeInUp 1s ease-out 0.2s;
     color: white;
-    margin-top: -1em;
+    margin-top: 0em;
   }
   .cta-button1{
   background-color: #fbbf24;
@@ -395,3 +395,60 @@ button.goal1:disabled {
   }
 }
 
+.loader-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.7); /* Optional: adds a slight overlay */
+  width: 100vw;
+  height: 100vh;
+}
+
+.loader {
+  width: 80px;
+  height: 80px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+.fullscreen-loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.rotating-loader {
+  width: 100px;
+  height: 100px;
+  animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
