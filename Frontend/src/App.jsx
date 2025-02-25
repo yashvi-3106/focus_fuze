@@ -11,7 +11,6 @@ import Auth from "./pages/Auth";
 import SaveVideo from "./pages/SaveVideo";
 
 
-
 const App = () => {
   return (
     <Router>
@@ -38,7 +37,8 @@ const MainContent = () => {
         <Route path="/notes" element={<Note/>} />
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/save-video" element={<SaveVideo />} />
-        
+
+
       </Routes>
     </div>
   );

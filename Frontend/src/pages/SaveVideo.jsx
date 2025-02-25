@@ -9,36 +9,62 @@ const SaveVideo = () => {
 
   // Fetch Saved Videos from Backend
   const fetchVideos = async () => {
+    const userId = localStorage.getItem("userId"); // Retrieve userId from localStorage or Auth system
+    if (!userId) {
+      console.error("User ID not found.");
+      return;
+    }
+  
     try {
-      const res = await axios.get("http://localhost:3000/api/videos/saved");
+      const res = await axios.get(`http://localhost:3000/api/videos/saved/${userId}`);
       setSavedVideos(res.data);
     } catch (error) {
       console.error("Error fetching videos:", error);
     }
   };
+  
+  
 
   // Save Video to Backend
   const saveVideo = async () => {
-    if (!videoUrl) return alert("Please enter a video URL");
-
+    const userId = localStorage.getItem("userId"); // Get userId from localStorage
+    if (!userId) {
+      alert("User not logged in.");
+      return;
+    }
+  
+    if (!videoUrl) {
+      alert("Please enter a video URL");
+      return;
+    }
+  
     try {
-      await axios.post("http://localhost:3000/api/videos/save", { videoUrl });
-      setVideoUrl("");
-      fetchVideos(); // Refresh list
+      await axios.post("http://localhost:3000/api/videos/save", { userId, videoUrl });
+      setVideoUrl(""); 
+      fetchVideos(); // Refresh the video list
     } catch (error) {
       console.error("Error saving video:", error);
     }
   };
+  
+  
 
   // Delete Video
-  const deleteVideo = async (id) => {
+  const deleteVideo = async (videoId) => {
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      console.error("User ID not found.");
+      return;
+    }
+  
     try {
-      await axios.delete(`http://localhost:3000/api/videos/delete/${id}`);
-      fetchVideos(); // Refresh list
+      await axios.delete(`http://localhost:3000/api/videos/delete/${videoId}`, { data: { userId } });
+      fetchVideos(); // Refresh the list
     } catch (error) {
       console.error("Error deleting video:", error);
     }
   };
+  
 
   // Load videos on mount
   useEffect(() => {
