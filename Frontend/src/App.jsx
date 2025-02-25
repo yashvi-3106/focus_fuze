@@ -14,6 +14,7 @@ import BlogPage from "./pages/BlogPage";
 import Auth from "./pages/Auth";
 import SaveVideo from "./pages/SaveVideo";
 import Contact from "./pages/Contact";
+import VideoNote from "./pages/VideoNote";
 
 const App = () => {
   return (
@@ -42,6 +43,7 @@ const MainContent = () => {
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/save-video" element={<SaveVideo />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/video/:videoId" element={<VideoNote />} />
       </Routes>
     </div>
   );
