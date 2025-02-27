@@ -4,15 +4,15 @@ const HomePage = () => {
   return (
     <div className="container8">
       <div className="hero-section">
-        <div className="container">
-          <h2 className="hero-title">Welcome to FocusFuze!</h2>
-          <p className="hero-description">
-            Organize. Prioritize. Achieve. <br />
-            Manage your tasks with ease <br /> and accomplish more every day.
-          </p>
-          <a href="#contact" className="cta-button">
-            Get Started 
-          </a>
+        <div className="welcome">
+          <h2>Welcome to FocusFuze !</h2>
+        </div>
+        <div className="welcome-text">
+          <p> Organize. Prioritize. Achieve. <br />
+          Manage your tasks with ease <br /> and accomplish more every day.</p>
+        </div>
+        <div className="get-started-button">
+          Get Started
         </div>
 
         <div className="rect" >
@@ -64,6 +64,68 @@ const HomePage = () => {
         </div>
 
       </div>
+
+
+
+      <div className="quotes-section">
+  <div className="rope"></div>
+  <div className="quotes-container">
+    <div className="quote-box">
+      <div className="quote-content">
+        <img className="quote-icon" src="https://cdn-icons-png.flaticon.com/512/1041/1041886.png" alt="Focus Icon" />
+      </div>
+      <div className="quote-text">Stay focused and never give up!</div>
+    </div>
+
+    <div className="quote-box">
+      <div className="quote-content">
+        <img className="quote-icon" src="https://cdn-icons-png.flaticon.com/512/854/854894.png" alt="Time Icon" />
+      </div>
+      <div className="quote-text">Your time is precious, use it wisely.</div>
+    </div>
+
+    <div className="quote-box">
+      <div className="quote-content">
+        <img className="quote-icon" src="https://cdn-icons-png.flaticon.com/512/1160/1160358.png" alt="Success Icon" />
+      </div>
+      <div className="quote-text">Big achievements start with small steps.</div>
+    </div>
+
+    <div className="quote-box">
+      <div className="quote-content">
+        <img className="quote-icon" src="https://cdn-icons-png.flaticon.com/512/1532/1532459.png" alt="Productivity Icon" />
+      </div>
+      <div className="quote-text">Productivity is the key to success!</div>
+    </div>
+
+    <div className="quote-box">
+      <div className="quote-content">
+        <img className="quote-icon" src="https://cdn-icons-png.flaticon.com/512/2921/2921222.png" alt="Plan Icon" />
+      </div>
+      <div className="quote-text">Plan, execute, and achieve.</div>
+    </div>
+
+    <div className="quote-box">
+      <div className="quote-content">
+        <img src="https://cdn.pixabay.com/photo/2023/01/05/21/28/target-7699762_640.png" alt="Success" className="quote-icon" />
+      </div>
+      <div className="quote-text">Success is the sum of small efforts!</div>
+    </div>
+
+    <div className="quote-box">
+      <div className="quote-content">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRKxxCRkTDhs4B2pNwnE-bSmMrNJspWmbTtmCAQBCiZCxswx7U9-bYF_GNU23dpV3OnhBg&usqp=CAU" alt="Growth" className="quote-icon" height="10px" width="10px" />
+      </div>
+      <div className="quote-text">Every day is a step towards growth!</div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
 
       {/* About Us Section */}
       <div className="about-us-section">

@@ -1,0 +1,131 @@
+/* Success Message Container */
+.success-container {
+    text-align: center;
+    margin-top: 9em;
+    margin-left: 28em;
+
+  }
+  
+  /* Success GIF Styling */
+  .success-gif {
+    border-radius: 10px;
+    width: 40vw;
+    height: 70vh;
+  }
+  
+  /* General Contact Container */
+  .contact-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 80%;
+    margin: auto;
+    padding: 40px;
+    border-radius: 10px;
+    background: black;
+    box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
+    color: white;
+  }
+  
+  /* Left Section */
+  .contact-left {
+    flex: 1;
+    padding-right: 40px;
+  }
+  
+  .contact-left h1 {
+    font-size: 28px;
+    margin-bottom: 10px;
+    color: #c95bf5;
+  }
+  
+  .contact-left p {
+    font-size: 16px;
+    color: #bbb;
+  }
+  
+  /* Form Styling */
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .form-group label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+    color: #ddd;
+  }
+  
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+    padding: 10px;
+    background: #222;
+    border: 1px solid #444;
+    border-radius: 5px;
+    font-size: 16px;
+    color: white;
+    transition: border-color 0.3s;
+  }
+  
+  .form-group input:focus,
+  .form-group textarea:focus {
+    border-color: #c95bf5;
+    outline: none;
+  }
+  
+  /* Submit Button */
+  .submit-button {
+    background: #c95bf5;
+    color: white;
+    padding: 10px 15px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .submit-button:hover {
+    background: #a045d8;
+  }
+  
+  /* Right Section */
+  .contact-right {
+    flex: 1;
+    text-align: center;
+  }
+  
+  .contact-icon {
+    width: 20vw;
+    margin-bottom: 15px;
+    filter: invert(1);
+  }
+  
+  .contact-description {
+    font-size: 16px;
+    color: #bbb;
+  }
+  
+  /* Responsive */
+  @media screen and (max-width: 768px) {
+    .contact-container {
+      flex-direction: column;
+      text-align: center;
+    }
+  
+    .contact-left {
+      padding-right: 0;
+      margin-bottom: 20px;
+    }
+  
+    .contact-right {
+      order: -1;
+    }
+  }
+  

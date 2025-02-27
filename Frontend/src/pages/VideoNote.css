@@ -1,0 +1,173 @@
+.video-note-container {
+    display: flex;
+    width: 100vw;
+  
+    margin: 40px auto;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #1e1e1e;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    height: 90vh;
+  }
+  
+  /* Video Section */
+  .video-section2 {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #121212;
+    border-right: 3px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .video-section2 iframe {
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(201, 91, 245, 0.8);
+    transition: box-shadow 0.3s ease-in-out;
+  }
+  
+  .video-section2 iframe:hover {
+    box-shadow: 0 0 25px rgba(201, 91, 245, 1);
+  }
+  
+  /* Notes Section */
+  .notes-section2 {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    background: #222;
+    margin-top: 3em;
+  }
+  
+  /* React Quill */
+  /* .ql-container1 {
+    background: #333;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    color: white;
+    height: 70vh;
+  }
+  
+  .ql-toolbar1 {
+    background: #ffffff;
+    border-radius: 8px 8px 0 0;
+  }
+  
+  .ql-container1.ql-snow1 {
+    border: 2px solid rgba(255, 254, 254, 0.2);
+  }
+  
+  .ql-editor1 {
+    min-height: 200px;
+    font-size: 16px;
+    color: white;
+  }
+  
+  .ql-editor1::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+  } */
+
+ /* Custom Quill Editor Styles */
+.custom-quill {
+    background: #333;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    color: white;
+    height: 70vh;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Customizing Quill container */
+  .custom-quill .ql-container {
+    background: #333;
+    border-radius: 0 0 8px 8px;
+    border: 2px solid #8b5cf6;
+    color: white;
+    flex-grow: 1; /* Allows it to take remaining space */
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Toolbar Styling */
+  .custom-quill .ql-toolbar {
+    background: #ffffff;
+    border-radius: 8px 8px 0 0;
+  }
+  
+  /* Make the notes editor scrollable */
+  .custom-quill .ql-editor {
+    min-height: 200px;
+    max-height: 400px; /* Limit the editor's height */
+    font-size: 16px;
+    color: white;
+    overflow-y: auto; /* Enables scrolling */
+    padding-bottom: 10px;
+  }
+  
+  /* Placeholder text color */
+  .custom-quill .ql-editor::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+    border: 2px solid #8b5cf6;
+  }
+  
+  
+  
+  /* Save Notes Button */
+  .notes-section2 button {
+    margin-top: 15px;
+    padding: 12px;
+    background: linear-gradient(to right, #c95bf5, #8b5cf6);
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s ease-in-out, transform 0.2s;
+  }
+  
+  .notes-section2 button:hover {
+    background: linear-gradient(to left, #c95bf5, #8b5cf6);
+    transform: scale(1.05);
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .video-note-container {
+      flex-direction: column;
+    }
+  
+    .video-section2 {
+      border-right: none;
+      border-bottom: 3px solid rgba(255, 255, 255, 0.2);
+    }
+  }
+  
+    /* Loader Container */
+.loader-container12 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Full screen height */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Slight dark overlay */
+    z-index: 999;
+  }
+  
+  /* Loader Animation */
+  .loader12 {
+    width: 80px;
+    height: 80px;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }

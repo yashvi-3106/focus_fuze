@@ -24,32 +24,53 @@
   margin-top: -5.1em;
   /* border: 2px solid pink; */
   margin-right: 1.2em;
+  background-color: black;
 }
 
-.container {
+.container11 {
   position: relative;
-  z-index: 0;
+  z-index: 9;
+
 }
 
-.hero-title {
-  font-size: 3rem;
-  font-weight: 800;
-  margin-bottom: 1rem;
-  margin-left: -14em;
+.welcome{
+  margin-top: 3em;
+  margin-left: 5em;
+  font-size: 2rem;
   text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
   animation: fadeInUp 1s ease-out;
-  margin-top: 2em;
 }
 
-.hero-description {
-  font-size: 2rem;
-  /* margin-bottom: 2rem; */
-  margin-left: -22em;
+.welcome-text{
+  margin-top: 1em;
+  /* font-size: 4em; */
+  margin-left: 12em;
+  color: white;
   text-shadow: 1px 1px 8px rgba(0, 0, 0, 0.4);
   animation: fadeInUp 1s ease-out 0.2s;
-  color: white;
-  margin-top: 0em;
 }
+
+.welcome-text >p {
+  font-size: 2em;
+  color: white;
+}
+
+.get-started-button{
+  background-color: #fbbf24;
+  color: #1e40af;
+  margin-top: 1em;
+  margin-left: 20em;
+  padding: 0.75rem 2rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  transform: scale(1);
+  animation: fadeInUp 1s ease-out 0.4s;
+  width: 10vw;
+}
+
 
 .cta-button {
   background-color: #fbbf24;
@@ -92,7 +113,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(to right, #1d4ed8, #7c3aed);
+  /* background: linear-gradient(to right, #1d4ed8, #7c3aed); */
   opacity: 0.75;
 }
 
@@ -550,4 +571,120 @@
   /* filter: drop-shadow(0px 0px 5px #c95bf5);  */
   margin-left: 24em;
   border-radius: 50px;
+}
+
+.quotes-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  margin-top: 10em;
+  margin-bottom: 2em;
+}
+
+.rope {
+  width: 100vw;
+  height: 5px;
+  background-color: #333;
+  position: relative;
+  margin-bottom: 20px;
+  color: black;
+}
+
+.quotes-container {
+  display: flex;
+  justify-content: space-around;
+  width: 80%;
+  position: relative;
+
+}
+
+.quote-box {
+  width: 200px;
+  height: 140px;
+  background-color: #fff;
+  border: 2px solid #333;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-size: 14px;
+  font-weight: bold;
+  box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out;
+  margin-left: 1em;
+}
+
+/* Hanging Effect - Strings */
+.quote-box::before {
+  content: "";
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  width: 2px;
+  height: 30px;
+  background-color: #333;
+  transform: translateX(-50%);
+}
+
+/* Alternate Heights for Hanging Effect */
+.quote-box:nth-child(odd) {
+  transform: translateY(-20px);
+}
+
+.quote-box:nth-child(even) {
+  transform: translateY(20px);
+}
+
+/* Icon & Text Handling */
+.quote-content {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.5s ease-in-out;
+}
+
+.quote-icon {
+  width: 50px;
+  height: 50px;
+}
+
+.quote-text {
+  position: absolute;
+  top: -100%;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7); /* Light Black Background */
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 14px;
+  font-weight: bold;
+  transition: transform 0.5s ease-in-out, background 0.3s ease-in-out;
+}
+
+/* Hover Effect - Top to Bottom Transition & Background Change */
+.quote-box:hover {
+  background-color: rgba(0, 0, 0, 0.7); /* Light Black Background */
+  color: white;
+}
+
+.quote-box:hover .quote-content {
+  transform: translateY(100%);
+}
+
+.quote-box:hover .quote-text {
+  transform: translateY(100%);
 }

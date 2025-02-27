@@ -141,6 +141,21 @@ const PersonalGoal = () => {
           </button>
         </div>
 
+
+        <div className="rect3" >
+        <img className="icon-goal3" src="https://png.pngtree.com/png-vector/20190716/ourmid/pngtree-goal-icon-for-your-project-png-image_1545201.jpg"   ></img>
+        </div>
+        <div className="rect4" >
+        <img className="icon-goal4" src="https://png.pngtree.com/png-vector/20190716/ourmid/pngtree-goal-icon-for-your-project-png-image_1545201.jpg"   ></img>
+        </div>
+        <div className="rect5" >
+        <img className="icon-goal5" src="https://png.pngtree.com/png-vector/20190716/ourmid/pngtree-goal-icon-for-your-project-png-image_1545201.jpg"   ></img>
+        </div>
+
+
+
+
+
         <div className="background-overlay1">
           <div className="background-image"></div>
           <div className="gradient-overlay1"></div>

@@ -45,6 +45,7 @@ const SignIn = () => {
   };
 
   return (
+    <div className="auth-background">
     <div className="auth-container">
       {loading && (
         <div className="loader-container6">
@@ -56,7 +57,7 @@ const SignIn = () => {
         </div>
       )}
 
-      <h2 className="auth-title">Sign Up</h2>
+      <h2 className="sign-in">Sign Up</h2>
       {error && <p className="error-message">{error}</p>}
       <form onSubmit={handleSubmit} className="auth-form">
         <input
@@ -85,9 +86,14 @@ const SignIn = () => {
         />
         <button type="submit" className="auth-button">Register</button>
       </form>
-      <p className="auth-footer">
+      <p className="sign-dont">
         Already have an account? <a href="/login" className="auth-link">Log in</a>
       </p>
+      
+    </div>
+    <div className="auth-image">
+        <img src="https://img.freepik.com/free-vector/privacy-policy-concept-illustration_114360-7853.jpg" alt="Privacy Policy" />
+      </div>
     </div>
   );
 };
