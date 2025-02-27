@@ -122,7 +122,7 @@ const Note = () => {
                   [{ script: "sub" }, { script: "super" }],
                   [{ list: "ordered" }, { list: "bullet" }],
                   [{ align: [] }],
-                  ["link"],
+                  ["image", "link", "video"],
                   ["clean"],
                 ],
               }}
