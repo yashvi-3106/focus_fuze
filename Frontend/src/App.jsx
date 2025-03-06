@@ -5,7 +5,7 @@ import "react-toastify/dist/ReactToastify.css"; // Import toast styles
 import SignIn from "./pages/SignIn";
 import Home from "./pages/Home";
 import PersonalGoal from "./pages/PersonalGoal";
-// import { PersonalGoal } from "./pages/PersonalGoal";
+
 
 import Navbar from "./components/Navbar";
 import CalendarPage from "./pages/CalendarPage";
@@ -13,7 +13,7 @@ import Note from "./pages/Note";
 import BlogPage from "./pages/BlogPage";
 import Auth from "./pages/Auth";
 import SaveVideo from "./pages/SaveVideo";
-import Contact from "./pages/Contact";
+// import Contact from "./pages/Contact";
 import VideoNote from "./pages/VideoNote";
 
 const App = () => {
@@ -42,7 +42,7 @@ const MainContent = () => {
         <Route path="/notes" element={<Note />} />
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/save-video" element={<SaveVideo />} />
-        <Route path="/contact" element={<Contact />} />
+        {/* <Route path="/contact" element={<Contact />} /> */}
         <Route path="/video/:videoId" element={<VideoNote />} />
       </Routes>
     </div>

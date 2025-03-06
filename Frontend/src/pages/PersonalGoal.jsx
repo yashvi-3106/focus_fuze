@@ -17,7 +17,6 @@ const PersonalGoal = () => {
     rewardPoints: "",
     status: "Not Started",
   });
-
   const [editingGoal, setEditingGoal] = useState(null);
   const [userId, setUserId] = useState(localStorage.getItem("userId"));
 
@@ -27,6 +26,15 @@ const PersonalGoal = () => {
     if (userId) {
       fetchGoals();
     }
+    // Request notification permission every time the component mounts
+    Notification.requestPermission().then((permission) => {
+      console.log("Notification permission:", permission);
+    });
+
+    // Set up notification check every 5 seconds
+    const interval = setInterval(checkDueDates, 60 * 60 * 1000); // Every 5 seconds
+    checkDueDates(); // Initial check on mount
+    return () => clearInterval(interval); // Cleanup on unmount
   }, [userId]);
 
   const fetchGoals = async () => {
@@ -127,96 +135,87 @@ const PersonalGoal = () => {
     });
   };
 
+  const checkDueDates = () => {
+    if (Notification.permission !== "granted") {
+      console.log("Notifications not permitted");
+      return;
+    }
+
+    console.log("Checking due dates...");
+    const now = new Date();
+    goals.forEach((goal) => {
+      const deadline = new Date(goal.deadline);
+      const timeDiff = deadline - now;
+      const hoursLeft = Math.ceil(timeDiff / (1000 * 60 * 60)); // Convert to hours
+      console.log(`Goal: ${goal.title}, Hours Left: ${hoursLeft}`);
+
+      if (hoursLeft > 0) {
+        // Notify if deadline is within 24 hours
+        if (hoursLeft <= 24) {
+          new Notification("FocusFuze Reminder", {
+            body: `Goal "${goal.title}" is due in ${hoursLeft} hour${hoursLeft === 1 ? "" : "s"}!`,
+            icon: "https://img.freepik.com/free-vector/goal-achievement-career-promotion-school-graduation-motivation-business-achievement-concept_335657-925.jpg",
+          });
+          console.log(`Notification sent: ${goal.title} due in ${hoursLeft} hours`);
+        }
+      } else if (timeDiff <= 0) {
+        // Overdue notification
+        new Notification("FocusFuze Reminder", {
+          body: `Goal "${goal.title}" is overdue!`,
+          icon: "https://img.freepik.com/free-vector/goal-achievement-career-promotion-school-graduation-motivation-business-achievement-concept_335657-925.jpg",
+        });
+        console.log(`Notification sent: ${goal.title} is overdue`);
+      }
+    });
+  };
+
   return (
-    <div className="container9">
-      <div className="hero-section1">
-        <div className="container1">
-          <h2 className="hero-title1">Personal Goal</h2>
-          <p className="hero-description1">
-            Organize. Prioritize. Achieve. <br />
-            Manage your tasks with ease <br /> and accomplish more every day.
-          </p>
-          <button onClick={() => navigate("/blog")} className="cta-button1">
-            Get Started
-          </button>
-        </div>
-
-
-        <div className="rect3" >
-        <img className="icon-goal3" src="https://png.pngtree.com/png-vector/20190716/ourmid/pngtree-goal-icon-for-your-project-png-image_1545201.jpg"   ></img>
-        </div>
-        <div className="rect4" >
-        <img className="icon-goal4" src="https://png.pngtree.com/png-vector/20190716/ourmid/pngtree-goal-icon-for-your-project-png-image_1545201.jpg"   ></img>
-        </div>
-        <div className="rect5" >
-        <img className="icon-goal5" src="https://png.pngtree.com/png-vector/20190716/ourmid/pngtree-goal-icon-for-your-project-png-image_1545201.jpg"   ></img>
-        </div>
-
-
-
-
-
-        <div className="background-overlay1">
-          <div className="background-image"></div>
-          <div className="gradient-overlay1"></div>
-          <div className="circle-effect circle-one"></div>
-          <div className="circle-effect circle-two"></div>
-          <div className="circle-effect circle-three"></div>
-        </div>
-      </div>
-
-      {loading && (
-        <div className="loader-container">
-          <img
-            src="https://cdn-icons-png.freepik.com/256/11857/11857533.png"
-            alt="Loading..."
-            className="loader"
-          />
-        </div>
-      )}
-
-      <div className="personal-form">
-        <div className="personal-goal">
-          <h3>{editingGoal ? "Edit Goal" : "Create New Goal"}</h3>
-          <p className="title1">Goal Title</p>
+    <div className="personal-goal-container">
+      {/* Left Section: Fixed Input Form */}
+      <section className="goal-form-section">
+        <h2 className="section-title">
+          {editingGoal ? "Edit Your Goal" : "Set a New Goal"}
+        </h2>
+        <p className="section-subtitle">Plan Your Path to Success</p>
+        <div className="goal-form">
+          <label className="form-label">Goal Title</label>
           <input
             type="text"
             name="title"
             value={newGoal.title}
             onChange={handleInputChange}
-            placeholder="Title"
-            className="title2"
+            placeholder="Enter your goal title"
+            className="form-input"
           />
 
-          <p className="title1">Description</p>
-          <input
-            type="text"
+          <label className="form-label">Description</label>
+          <textarea
             name="description"
             value={newGoal.description}
             onChange={handleInputChange}
-            placeholder="Description"
-            className="title3"
+            placeholder="Describe your goal"
+            className="form-textarea"
           />
 
-          <div className="flex">
-            <div>
-              <p className="title1">Deadline</p>
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Deadline</label>
               <input
                 type="date"
                 name="deadline"
                 value={newGoal.deadline}
                 onChange={handleInputChange}
-                className="title4"
+                className="form-input"
               />
             </div>
 
-            <div>
-              <p className="title1">Priority</p>
+            <div className="form-group">
+              <label className="form-label">Priority</label>
               <select
                 name="priority"
                 value={newGoal.priority}
                 onChange={handleInputChange}
-                className="title5"
+                className="form-select"
               >
                 <option value="">Select Priority</option>
                 <option value="High">High</option>
@@ -224,44 +223,77 @@ const PersonalGoal = () => {
                 <option value="Low">Low</option>
               </select>
             </div>
-
-            <div>
-              <p className="title1">Reward Points</p>
-              <input
-                className="title6"
-                type="number"
-                name="rewardPoints"
-                value={newGoal.rewardPoints}
-                onChange={handleInputChange}
-                placeholder="Reward Points"
-              />
-            </div>
           </div>
-          <button onClick={editingGoal ? updateGoal : addGoal} className="goal1">
-            {editingGoal ? "Update Goal" : "Create Goal"}
+
+          <label className="form-label">Reward Points (Optional)</label>
+          <input
+            type="number"
+            name="rewardPoints"
+            value={newGoal.rewardPoints}
+            onChange={handleInputChange}
+            placeholder="Add reward points"
+            className="form-input"
+          />
+
+          <button
+            onClick={editingGoal ? updateGoal : addGoal}
+            className="form-btn"
+          >
+            {editingGoal ? "Update Goal" : "Add Goal"}
           </button>
         </div>
-      </div>
+      </section>
 
-      <div className="goal-cards-container">
-        {!loading &&
-          goals.map((goal) => (
-            <div key={goal._id} className="goal-card">
-              <p className="txt5">Title: {goal.title}</p>
-              <p className="txt7">Priority: {goal.priority}</p>
-              <p className="txt8">Reward Points: {goal.rewardPoints}</p>
-
-              <div className="goal-actions">
-                <button onClick={() => deleteGoal(goal._id)} className="btn-delete">
-                  <FaTrash />
+      {/* Right Section: Scrollable Goal List */}
+      <section className="goal-list-section">
+        <h2 className="section-title">Your Goals</h2>
+        <p className="section-subtitle">Track Your Progress</p>
+        <div className="goal-list">
+          {loading ? (
+            <div className="loader-container">
+              <img
+                src="https://cdn-icons-png.freepik.com/256/11857/11857533.png"
+                alt="Loading..."
+                className="loader"
+              />
+            </div>
+          ) : goals.length === 0 ? (
+            <p className="no-goals">No goals yet. Start by adding one!</p>
+          ) : (
+            goals.map((goal) => (
+              <div key={goal._id} className="goal-box">
+                <h3 className="goal-title">{goal.title}</h3>
+                <p className="goal-desc">{goal.description}</p>
+                <div className="goal-details">
+                  <span className={`goal-priority ${goal.priority.toLowerCase()}`}>
+                    {goal.priority}
+                  </span>
+                  <span className="goal-deadline">
+                    Due: {new Date(goal.deadline).toLocaleDateString()}
+                  </span>
+                  {goal.rewardPoints && (
+                    <span className="goal-reward">
+                      Reward: {goal.rewardPoints} pts
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={() => editGoal(goal)}
+                  className="action-btn edit-btn"
+                >
+                  <FaEdit /> Edit
                 </button>
-                <button onClick={() => editGoal(goal)} className="btn-edit">
-                  <FaEdit />
+                <button
+                  onClick={() => deleteGoal(goal._id)}
+                  className="action-btn delete-btn"
+                >
+                  <FaTrash /> Delete
                 </button>
               </div>
-            </div>
-          ))}
-      </div>
+            ))
+          )}
+        </div>
+      </section>
     </div>
   );
 };

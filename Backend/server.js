@@ -14,7 +14,10 @@ const teamGoalRoutes = require("./teamGoal");
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(express.json());
+// app.use(express.json());
+app.use(express.json({ limit: "50mb" })); // Increase limit as needed
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+
 
 // ✅ Debugging: Log incoming request origins
 app.use((req, res, next) => {
