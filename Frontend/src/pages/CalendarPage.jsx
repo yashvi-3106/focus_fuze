@@ -7,34 +7,50 @@ import {
   TextField,
   Button,
   CssBaseline,
-  Container,
 } from "@mui/material";
 import { DesktopDatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { ToastContainer, toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./CalendarPage.css";
 
 const CalendarPage = () => {
   const [events, setEvents] = useState([]);
-  const [newEvent, setNewEvent] = useState({ title: "", date: null, description: "" });
   const [loading, setLoading] = useState(true);
-  const userId = localStorage.getItem("userId") || ""; 
-
+  const [newEvent, setNewEvent] = useState({
+    title: "",
+    date: null,
+    description: "",
+  });
+  const userId = localStorage.getItem("userId") || "";
   const API_URL = "http://localhost:3000/calendar";
 
   useEffect(() => {
-    if (userId) {
-      fetchEvents();
+    if (!userId) {
+      toast.error("Please log in to access the calendar");
+      window.location.href = "/login";
+      return;
     }
+
+    fetchEvents();
+    Notification.requestPermission().then((permission) => {
+      console.log("Notification permission:", permission);
+    });
+    const interval = setInterval(checkDueDates, 5 * 1000);
+    checkDueDates();
+    return () => clearInterval(interval);
   }, [userId]);
 
   const fetchEvents = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API_URL}/${userId}`);
+      console.log("Fetching events for userId:", userId); // Debug
+      const response = await axios.get(`${API_URL}/${userId}`, {
+        withCredentials: true,
+      });
+      console.log("Fetch events response:", response.data); // Debug
       setEvents(
-        response.data.map(event => ({
+        response.data.map((event) => ({
           id: event._id,
           title: event.title,
           start: event.date,
@@ -42,11 +58,18 @@ const CalendarPage = () => {
         }))
       );
     } catch (error) {
-      toast.error("Error fetching events");
-      console.error("Error fetching events:", error);
+      console.error("Fetch events error:", error.response); // Detailed error
+      toast.error("Error fetching events: " + (error.response?.data?.error || "Unknown error"));
     } finally {
       setTimeout(() => setLoading(false), 1000);
     }
+  };
+
+  const handleInputChange = (name, value) => {
+    setNewEvent((prevEvent) => ({
+      ...prevEvent,
+      [name]: value,
+    }));
   };
 
   const handleAddEvent = async () => {
@@ -54,16 +77,34 @@ const CalendarPage = () => {
       toast.warn("Please enter event title and date");
       return;
     }
-
+  
     setLoading(true);
     try {
-      await axios.post(API_URL, { userId, ...newEvent });
+      const localEvent = {
+        userId,
+        title: newEvent.title,
+        date: newEvent.date.format("YYYY-MM-DD"),
+        description: newEvent.description,
+      };
+      console.log("Adding event:", localEvent); // Debug
+      const response = await axios.post(API_URL, localEvent, {
+        withCredentials: true,
+      });
+      console.log("Add event response:", response.data); // Debug
       fetchEvents();
       setNewEvent({ title: "", date: null, description: "" });
-      toast.success("Event added successfully!");
+      toast.success("Event added successfully and synced with Google Calendar!");
     } catch (error) {
-      toast.error("Error adding event");
-      console.error("Error adding event:", error);
+      console.error("Add event error:", error.response);
+      if (error.response && error.response.status === 403 && error.response.data.redirect) {
+        toast.info("Redirecting to Google authentication...");
+        window.location.href = "http://localhost:3000/auth/google";
+      } else if (error.response && error.response.status === 401) {
+        toast.error("Session expired. Please log in again.");
+        window.location.href = "/login";
+      } else {
+        toast.error("Error adding event: " + (error.response?.data?.error || "Unknown error"));
+      }
     } finally {
       setTimeout(() => setLoading(false), 1000);
     }
@@ -75,7 +116,9 @@ const CalendarPage = () => {
       onClose: async () => {
         setLoading(true);
         try {
-          await axios.delete(`${API_URL}/${eventId}`);
+          await axios.delete(`${API_URL}/${eventId}`, {
+            withCredentials: true,
+          });
           fetchEvents();
           toast.success("Event deleted successfully!");
         } catch (error) {
@@ -89,55 +132,122 @@ const CalendarPage = () => {
     });
   };
 
+  const checkDueDates = () => {
+    if (Notification.permission !== "granted") return;
+    const now = new Date();
+    events.forEach((event) => {
+      const eventDate = new Date(event.start);
+      const timeDiff = eventDate - now;
+      const hoursLeft = Math.ceil(timeDiff / (1000 * 60 * 60));
+      if (hoursLeft > 0 && hoursLeft <= 24) {
+        new Notification("FocusFuze Calendar Reminder", {
+          body: `Event "${event.title}" is scheduled in ${hoursLeft} hour${hoursLeft === 1 ? "" : "s"}!`,
+          icon: "https://img.freepik.com/free-vector/time-management-concept-illustration_114360-767.jpg",
+        });
+      } else if (timeDiff <= 0) {
+        new Notification("FocusFuze Calendar Reminder", {
+          body: `Event "${event.title}" is overdue!`,
+          icon: "https://img.freepik.com/free-vector/time-management-concept-illustration_114360-767.jpg",
+        });
+      }
+    });
+  };
+
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <CssBaseline />
-      <Container>
-        <ToastContainer position="top-right" autoClose={3000} />
-        <div className="calendar-container">
+      <div className="calendar-container">
+        <section className="event-input-section">
+          <h2 className="section-title">Add New Event</h2>
+          <p className="section-subtitle">Schedule Your Day</p>
+          <div className="event-form">
+            <TextField
+              label="Event Title"
+              variant="outlined"
+              fullWidth
+              value={newEvent.title}
+              onChange={(e) => handleInputChange("title", e.target.value)}
+              sx={{ marginBottom: 2 }}
+              InputLabelProps={{ style: { color: "#555" } }}
+              InputProps={{ style: { borderRadius: "5px" } }}
+              disabled={loading}
+            />
+            <DesktopDatePicker
+              label="Event Date"
+              value={newEvent.date}
+              onChange={(newValue) => handleInputChange("date", newValue)}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  fullWidth
+                  sx={{ marginBottom: 2 }}
+                  InputLabelProps={{ style: { color: "#555" } }}
+                  InputProps={{ style: { borderRadius: "5px" } }}
+                  disabled={loading}
+                />
+              )}
+            />
+            <TextField
+              label="Description (Optional)"
+              variant="outlined"
+              fullWidth
+              multiline
+              rows={4}
+              value={newEvent.description}
+              onChange={(e) => handleInputChange("description", e.target.value)}
+              sx={{ marginBottom: 2 }}
+              InputLabelProps={{ style: { color: "#555" } }}
+              InputProps={{ style: { borderRadius: "5px" } }}
+              disabled={loading}
+            />
+            <Button
+              variant="contained"
+              onClick={handleAddEvent}
+              disabled={loading}
+              sx={{
+                backgroundColor: "#007bff",
+                "&:hover": {
+                  backgroundColor: "#0056b3",
+                  transform: "translateY(-2px)",
+                  boxShadow: "0 4px 15px rgba(0, 123, 255, 0.3)",
+                },
+                borderRadius: "5px",
+                padding: "12px 25px",
+                fontSize: "16px",
+                transition: "all 0.3s ease",
+              }}
+            >
+              {loading ? "Adding..." : "Add Event"}
+            </Button>
+          </div>
+        </section>
+        <section className="calendar-display-section">
+          <h2 className="section-title">Your Calendar</h2>
+          <p className="section-subtitle">Stay on Top of Your Schedule</p>
           {loading ? (
-            <div className="loader-container1">
+            <div className="loader-container">
               <img
                 src="https://cdn-icons-png.freepik.com/256/11857/11857533.png?semt=ais_hybrid"
                 alt="Loading..."
-                className="custom-loader1"
+                className="loader"
               />
             </div>
           ) : (
-            <>
-              <div className="event-input">
-                <TextField
-                  label="Event Title"
-                  variant="outlined"
-                  fullWidth
-                  value={newEvent.title}
-                  onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-                  sx={{ marginBottom: 2 }}
-                />
-
-                <DesktopDatePicker
-                  label="Event Date"
-                  inputFormat="yyyy-MM-dd"
-                  value={newEvent.date}
-                  onChange={(newValue) => setNewEvent({ ...newEvent, date: newValue })}
-                  renderInput={(params) => <TextField {...params} fullWidth sx={{ marginBottom: 2 }} />}
-                />
-
-                <Button variant="contained" color="primary" onClick={handleAddEvent}>
-                  Add Event
-                </Button>
-              </div>
-
+            <div className="calendar-wrapper">
               <FullCalendar
                 plugins={[dayGridPlugin, interactionPlugin]}
                 initialView="dayGridMonth"
                 events={events}
                 eventClick={handleEventClick}
+                height="auto"
               />
-            </>
+            </div>
           )}
+        </section>
+        <div className="toast-container">
+          <ToastContainer position="top-right" autoClose={3000} />
         </div>
-      </Container>
+      </div>
     </LocalizationProvider>
   );
 };

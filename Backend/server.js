@@ -71,7 +71,7 @@ app.use(session({
   cookie: {
     secure: process.env.NODE_ENV === 'production', // Secure cookies in production
     httpOnly: true,
-    sameSite: 'None', // Important for cross-origin requests (Netlify)
+    sameSite: 'Lax', // Important for cross-origin requests (Netlify)
     maxAge: 1000 * 60 * 60 * 24, // 1 day expiration
   },
 }));
