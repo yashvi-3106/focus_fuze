@@ -1,126 +1,144 @@
+/* General Styles */
+.calendar-container {
+  font-family: 'Arial', sans-serif;
+  color: #333;
+  display: flex;
+  min-height: 100vh;
+  background: #f9f9f9;
+}
 
-  
+/* Left Section: Fixed Input Form */
+.event-input-section {
+  width: 30%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  background: #fff;
+  padding: 40px;
+  border-right: 1px solid #ddd;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.section-title {
+  font-size: 32px;
+  margin-bottom: 10px;
+  color: #1a1a1a;
+}
+
+.section-subtitle {
+  font-size: 18px;
+  color: #007bff;
+  margin-bottom: 20px;
+}
+
+.event-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Right Section: Calendar Display */
+.calendar-display-section {
+  width: 70%;
+  margin-left: 30%;
+  padding: 40px;
+  overflow-y: auto;
+  height: 100vh;
+}
+
+.calendar-wrapper {
+  width: 100%;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  overflow-x: auto; /* Allows horizontal scrolling on small screens */
+}
+
+.fc {
+  min-width: 600px; /* Ensures calendar has a minimum width for readability */
+}
+
+.fc .fc-daygrid-day-number {
+  color: #333;
+}
+
+.fc .fc-daygrid-event {
+  background-color: #007bff;
+  border: none;
+  padding: 5px;
+  border-radius: 5px;
+  color: white;
+  cursor: pointer;
+}
+
+.fc .fc-daygrid-event:hover {
+  background-color: #0056b3;
+}
+
+/* Loader */
+.loader-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.loader {
+  width: 50px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+
+/* Toast Container */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
   .calendar-container {
-    padding-top: 5em;
-    display: flex;
-    gap: 20px;
-    width: 95vw;
-    height: 50vh;
-    overflow: hidden;
-    height: auto;
-  
-  }
-  
-  
-  .calendar-container .fc {
-    flex: 4; /* 75% of the container */
-    background-color: #fff;
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    width: 70vw;
-    color: black;
-   
-  }
-  
-  
-  .event-input {
-    flex: 1; /* 25% of the container */
-    background-color: #fff;
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    display: flex;
     flex-direction: column;
-    gap: 10px;
-    width: 15vw;
-   
   }
-  
- 
-  
-  /* Form inputs and button styling */
-  /* .event-input input,
-  .event-input textarea {
+
+  .event-input-section {
+    position: static;
+    width: 100%;
+    height: auto;
+    padding: 20px;
+  }
+
+  .calendar-display-section {
+    width: 100%;
+    margin-left: 0;
+    padding: 20px;
+    height: auto;
+    min-height: 60vh; /* Ensures calendar has enough space on small screens */
+  }
+
+  .calendar-wrapper {
+    overflow-x: auto; /* Maintains horizontal scrollability */
     padding: 10px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    width: 22vw;
-    background-color: #f9f9f9;
-    color:black;
-  } */
-  
-  .event-input input[type="date"] {
-    width: 22vw;
   }
-  
-  .event-input textarea {
-    height: 100px;
-    resize: none;
-  }
-  
-  .event-input button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 12px;
-    font-size: 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  
-  .event-input button:hover {
-    background-color: #0056b3;
-  }
-  
-  /* Calendar section, making sure the calendar content fits within the container */
-  .fc-view-harness {
-    width: 100% !important;
-  }
-  
-  .fc-toolbar {
-    margin-bottom: 20px;
-  }
-  
-  /* Input field labels */
-  .event-input input::placeholder,
-  .event-input textarea::placeholder {
-    color: #888;
-  }
-  
-  /* Add some padding around the overall container */
-  .calendar-container {
-    margin-right: 1em;
-    margin-top: 2em;
-    
 
+  .fc {
+    min-width: 300px; /* Adjust minimum width for smaller screens */
   }
-  
 
-  .loader-container1 {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    width: 100vw;
-    background-color: rgba(255, 255, 255, 0.8);
-    z-index: 1000;
+  .section-title {
+    font-size: 24px;
   }
-  
-  .custom-loader1 {
-    width: 80px;
-    height: 80px;
-    animation: spin 1s linear infinite;
+
+  .section-subtitle {
+    font-size: 16px;
   }
-  
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-  
+}
