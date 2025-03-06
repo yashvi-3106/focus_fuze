@@ -15,6 +15,9 @@ import Auth from "./pages/Auth";
 import SaveVideo from "./pages/SaveVideo";
 // import Contact from "./pages/Contact";
 import VideoNote from "./pages/VideoNote";
+// In index.js or App.jsx
+import axios from "axios";
+axios.defaults.withCredentials = true;
 
 const App = () => {
   return (
@@ -38,7 +41,7 @@ const MainContent = () => {
         <Route path="/register" element={<SignIn />} />     
         <Route path="/home" element={<Home />} />
         <Route path="/personal-goals" element={<PersonalGoal />} />
-        <Route path="/calendar-page" element={<CalendarPage />} />
+        <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/notes" element={<Note />} />
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/save-video" element={<SaveVideo />} />
