@@ -6,7 +6,7 @@ const BlogPage = () => {
 
   return (
     <div className="blog-container">
-      {/* <h1 className="blog-title">The Importance of Goal Setting in Everyday Life</h1> */}
+      {/* <h1 className="blog-title">The Importance of Goal Setting in Everyday Life</h1>                                            */}
 
       <div className="video-container">
         <iframe
@@ -22,7 +22,7 @@ const BlogPage = () => {
         
         <button onClick={() => navigate("/personal-goals")} className="skip-btn">Skip</button>
       </div>
-
+{/* 
       <div className="content-section">
         <p className="intro-text">
           Setting goals is one of the most effective ways to achieve success in life.
@@ -52,7 +52,7 @@ const BlogPage = () => {
             </ul>
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };

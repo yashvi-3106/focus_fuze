@@ -137,7 +137,11 @@ const Note = () => {
             {notes.map((note) => (
               <div key={note._id} className="note-box">
                 <h3>{note.title}</h3>
-                <div dangerouslySetInnerHTML={{ __html: note.content }} />
+                <div
+  className="note-preview"
+  dangerouslySetInnerHTML={{ __html: note.content.substring(0, 100) + (note.content.length > 100 ? "..." : "") }}
+/>
+
 
                 <div className="actions">
                   <FaEdit

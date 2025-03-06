@@ -11,6 +11,8 @@ import {
 } from "@mui/material";
 import { DesktopDatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./CalendarPage.css";
 
 const CalendarPage = () => {
@@ -40,6 +42,7 @@ const CalendarPage = () => {
         }))
       );
     } catch (error) {
+      toast.error("Error fetching events");
       console.error("Error fetching events:", error);
     } finally {
       setTimeout(() => setLoading(false), 1000);
@@ -47,13 +50,19 @@ const CalendarPage = () => {
   };
 
   const handleAddEvent = async () => {
-    if (!newEvent.title || !newEvent.date) return;
+    if (!newEvent.title || !newEvent.date) {
+      toast.warn("Please enter event title and date");
+      return;
+    }
+
     setLoading(true);
     try {
       await axios.post(API_URL, { userId, ...newEvent });
       fetchEvents();
       setNewEvent({ title: "", date: null, description: "" });
+      toast.success("Event added successfully!");
     } catch (error) {
+      toast.error("Error adding event");
       console.error("Error adding event:", error);
     } finally {
       setTimeout(() => setLoading(false), 1000);
@@ -62,23 +71,29 @@ const CalendarPage = () => {
 
   const handleEventClick = async (clickInfo) => {
     const eventId = clickInfo.event.id;
-    if (window.confirm("Are you sure you want to delete this event?")) {
-      setLoading(true);
-      try {
-        await axios.delete(`${API_URL}/${eventId}`);
-        fetchEvents();
-      } catch (error) {
-        console.error("Error deleting event:", error);
-      } finally {
-        setTimeout(() => setLoading(false), 1000);
-      }
-    }
+    toast.info("Click again to confirm deletion", {
+      onClose: async () => {
+        setLoading(true);
+        try {
+          await axios.delete(`${API_URL}/${eventId}`);
+          fetchEvents();
+          toast.success("Event deleted successfully!");
+        } catch (error) {
+          toast.error("Error deleting event");
+          console.error("Error deleting event:", error);
+        } finally {
+          setTimeout(() => setLoading(false), 1000);
+        }
+      },
+      autoClose: 2000,
+    });
   };
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <CssBaseline />
       <Container>
+        <ToastContainer position="top-right" autoClose={3000} />
         <div className="calendar-container">
           {loading ? (
             <div className="loader-container1">
