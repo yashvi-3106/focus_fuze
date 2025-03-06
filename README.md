@@ -6,5 +6,3 @@
 ## Deployed link on render for backend
 # https://focus-fuze.onrender.com
 
-## Deployed Frontend on netlify
-# https://focuss-fuze.netlify.app/
