@@ -25,6 +25,8 @@ app.use((req, res, next) => {
   next();
 });
 
+
+
 // ✅ Allowed origins
 const allowedOrigins = [
   "http://localhost:5178",
@@ -75,6 +77,8 @@ app.use(session({
     maxAge: 1000 * 60 * 60 * 24, // 1 day expiration
   },
 }));
+
+
 
 // ✅ Register Routes
 app.use('/auth', authenticationRoutes);

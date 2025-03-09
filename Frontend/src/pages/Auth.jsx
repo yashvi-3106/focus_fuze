@@ -43,7 +43,7 @@ const Auth = () => {
         navigate("/home"); // This should now work
       }, Math.max(0, 1000 - elapsed));
     } catch (err) {
-      // ... error handling
+      console.log(err);
     }
   };
 
