@@ -155,18 +155,19 @@ router.put("/:taskId/comments/:commentId", async (req, res) => {
 });
 
 // Delete a Comment
-router.post("/:taskId/comments", async (req, res) => {
+router.delete("/:taskId/comments/:commentId", async (req, res) => {
   try {
-    const { taskId } = req.params;
-    const { userId, username, content } = req.body;
-    const goal = await TeamGoal.findOne({ taskId });
+    const { taskId, commentId } = req.params;
+    const goal = await TeamGoal.findOneAndUpdate(
+      { taskId },
+      { $pull: { comments: { _id: commentId } } },
+      { new: true }
+    );
     if (!goal) return res.status(404).json({ error: "Goal not found" });
-    goal.comments.push({ userId, username, content, createdAt: new Date() });
-    await goal.save();
-    res.json(goal); // Should return the updated goal with comments
+    res.json(goal);
   } catch (error) {
-    console.error("Error adding comment:", error);
-    res.status(500).json({ error: "Error adding comment" });
+    console.error("Error deleting comment:", error);
+    res.status(500).json({ error: "Error deleting comment" });
   }
 });
 

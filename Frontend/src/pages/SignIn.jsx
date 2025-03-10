@@ -9,6 +9,8 @@ import {
   CssBaseline,
   Typography,
   Box,
+  Fade,
+  Slide,
 } from "@mui/material";
 import "./SignIn.css";
 
@@ -36,7 +38,7 @@ const SignIn = () => {
       await axios.post(
         "http://localhost:3000/auth/register",
         formData,
-        { withCredentials: true } // Include session cookies
+        { withCredentials: true }
       );
       toast.success("User registered successfully! 🎉");
 
@@ -56,92 +58,86 @@ const SignIn = () => {
   return (
     <div className="auth-background">
       <CssBaseline />
-      <Box className="auth-container">
-        {loading && (
-          <div className="loader-container6">
-            <img
-              src="https://cdn-icons-png.freepik.com/256/11857/11857533.png?semt=ais_hybrid"
-              alt="Loading..."
-              className="custom-loader6"
-            />
+      <Fade in={true} timeout={1000}>
+        <Box className="auth-page-container">
+          <Slide direction="up" in={true} timeout={800}>
+            <Box className="auth-form-container">
+              {loading && (
+                <div className="loader-container6">
+                  <img
+                    src="https://cdn-icons-png.freepik.com/256/11857/11857533.png?semt=ais_hybrid"
+                    alt="Loading..."
+                    className="custom-loader6"
+                  />
+                </div>
+              )}
+              <Typography variant="h4" className="auth-title">
+                Sign Up
+              </Typography>
+              {error && (
+                <Typography className="auth-error-message">{error}</Typography>
+              )}
+              <form onSubmit={handleSubmit} className="auth-form">
+                <TextField
+                  label="Username"
+                  name="username"
+                  variant="outlined"
+                  fullWidth
+                  value={formData.username}
+                  onChange={handleChange}
+                  required
+                  className="auth-text-field"
+                  disabled={loading}
+                />
+                <TextField
+                  label="Email"
+                  name="email"
+                  variant="outlined"
+                  fullWidth
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  className="auth-text-field"
+                  disabled={loading}
+                />
+                <TextField
+                  label="Password"
+                  name="password"
+                  type="password"
+                  variant="outlined"
+                  fullWidth
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  className="auth-text-field"
+                  disabled={loading}
+                />
+                <Button
+                  type="submit"
+                  variant="contained"
+                  fullWidth
+                  disabled={loading}
+                  className="auth-submit-button"
+                >
+                  {loading ? "Registering..." : "Register"}
+                </Button>
+              </form>
+              <Typography className="auth-footer-text">
+                Already have an account?{" "}
+                <a href="/login" className="auth-link">
+                  Log in
+                </a>
+              </Typography>
+            </Box>
+          </Slide>
+          <div className="auth-image-section">
+            <div className="auth-image-overlay">
+              <h2>Organize, Succeed</h2>
+              <p>Plan Your Tasks, Achieve Your Goals</p>
+            </div>
           </div>
-        )}
-        <Typography variant="h2" className="sign-in">
-          Sign Up
-        </Typography>
-        {error && <p className="error-message">{error}</p>}
-        <form onSubmit={handleSubmit} className="auth-form">
-          <TextField
-            label="Username"
-            name="username"
-            variant="outlined"
-            fullWidth
-            value={formData.username}
-            onChange={handleChange}
-            required
-            sx={{ marginBottom: 2 }}
-            InputLabelProps={{ style: { color: "#555" } }}
-            InputProps={{ style: { borderRadius: "5px" } }}
-            disabled={loading}
-          />
-          <TextField
-            label="Email"
-            name="email"
-            variant="outlined"
-            fullWidth
-            value={formData.email}
-            onChange={handleChange}
-            required
-            sx={{ marginBottom: 2 }}
-            InputLabelProps={{ style: { color: "#555" } }}
-            InputProps={{ style: { borderRadius: "5px" } }}
-            disabled={loading}
-          />
-          <TextField
-            label="Password"
-            name="password"
-            type="password"
-            variant="outlined"
-            fullWidth
-            value={formData.password}
-            onChange={handleChange}
-            required
-            sx={{ marginBottom: 2 }}
-            InputLabelProps={{ style: { color: "#555" } }}
-            InputProps={{ style: { borderRadius: "5px" } }}
-            disabled={loading}
-          />
-          <Button
-            type="submit"
-            variant="contained"
-            fullWidth
-            disabled={loading}
-            sx={{
-              backgroundColor: "#007bff",
-              "&:hover": {
-                backgroundColor: "#0056b3",
-                transform: "translateY(-2px)",
-                boxShadow: "0 4px 15px rgba(0, 123, 255, 0.3)",
-              },
-              borderRadius: "5px",
-              padding: "12px 25px",
-              fontSize: "16px",
-              transition: "all 0.3s ease",
-            }}
-          >
-            {loading ? "Registering..." : "Register"}
-          </Button>
-        </form>
-        <p className="sign-dont">
-          Already have an account? <a href="/login" className="auth-link">Log in</a>
-        </p>
-      </Box>
-      <div className="auth-image">
-        <img
-          src="https://img.freepik.com/free-vector/privacy-policy-concept-illustration_114360-7853.jpg"
-          alt="Privacy Policy"
-        />
-      </div>
+        </Box>
+      </Fade>
       <div className="toast-container">
         <ToastContainer position="top-right" autoClose={3000} />
       </div>

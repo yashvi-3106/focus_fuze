@@ -51,13 +51,12 @@ const TeamGoalPage = () => {
     if (!title || !description || !dueDate) return;
     setLoading(true);
     try {
-      // Map members to include username from allUsers
       const enrichedMembers = members.map(member => {
         const user = allUsers.find(u => u._id === member.memberId);
         return {
           memberId: member.memberId,
           task: member.task,
-          username: user ? user.username : "Unknown", // Fallback to "Unknown" if not found
+          username: user ? user.username : "Unknown",
         };
       });
 
@@ -67,7 +66,7 @@ const TeamGoalPage = () => {
         description,
         priority,
         dueDate,
-        members: enrichedMembers, // Send enriched members with usernames
+        members: enrichedMembers,
       });
       setTaskId(response.data.taskId);
       setView("dashboard");
@@ -109,7 +108,7 @@ const TeamGoalPage = () => {
           username: user ? user.username : "Unknown",
         };
       });
-  
+
       const memberUrl = `${API_URL}/${selectedGoal.taskId}/members`;
       console.log("Adding member to URL:", memberUrl);
       console.log("Payload:", { members: enrichedMembers });
@@ -173,12 +172,18 @@ const TeamGoalPage = () => {
   const handleDeleteComment = async (commentId) => {
     setLoading(true);
     try {
-      await axios.delete(`${API_URL}/${selectedGoal.taskId}/comments/${commentId}`);
-      const response = await axios.get(`${API_URL}/${selectedGoal.taskId}`);
-      setSelectedGoal(response.data);
+      const deleteUrl = `${API_URL}/${selectedGoal.taskId}/comments/${commentId}`;
+      console.log("Deleting comment at URL:", deleteUrl);
+      const response = await axios.delete(deleteUrl);
+      console.log("Delete response:", response.data);
+      setSelectedGoal({ ...response.data }); // Update state with returned goal
       setLoading(false);
     } catch (error) {
       console.error("Error deleting comment:", error);
+      if (error.response) {
+        console.log("Response data:", error.response.data);
+        console.log("Response status:", error.response.status);
+      }
       setLoading(false);
     }
   };
