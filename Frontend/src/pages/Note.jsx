@@ -11,7 +11,7 @@ const Note = () => {
   const [content, setContent] = useState("");
   const [userId] = useState(localStorage.getItem("userId") || "");
   const [selectedNote, setSelectedNote] = useState(null);
-  const [loading, setLoading] = useState(false); // Loader state
+  const [loading, setLoading] = useState(false);
 
   const API_URL = "http://localhost:3000/notes";
 
@@ -87,82 +87,95 @@ const Note = () => {
   return (
     <div className="notes-container">
       {loading && (
-        <div className="loader-container2">
+        <div className="notes-loader-container">
           <img
             src="https://cdn-icons-png.freepik.com/256/11857/11857533.png"
             alt="Loading..."
-            className="loader2"
+            className="notes-loader"
           />
         </div>
       )}
 
       {!loading && (
-        <>
-          <div className="note-input">
-            <h2>{selectedNote ? "Edit Note" : "Create Note"}</h2>
-            <input
-              type="text"
-              placeholder="Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
+        <div className="notes-main-layout">
+          {/* Left Section: Note Input (70%) */}
+          <section className="notes-input-area">
+            <h2 className="notes-heading">
+              {selectedNote ? "Edit Note" : "Create Note"}
+            </h2>
+            <p className="notes-subheading">Capture Your Thoughts</p>
+            <div className="notes-input-form">
+              <input
+                type="text"
+                placeholder="Title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="notes-title-field"
+              />
+              <ReactQuill
+                value={content}
+                onChange={setContent}
+                theme="snow"
+                className="notes-quill-editor"
+                modules={{
+                  toolbar: [
+                    [{ header: [1, 2, 3, false] }],
+                    [{ font: [] }],
+                    [{ size: [] }],
+                    [{ color: [] }, { background: [] }],
+                    ["bold", "italic", "underline", "strike"],
+                    [{ script: "sub" }, { script: "super" }],
+                    [{ list: "ordered" }, { list: "bullet" }],
+                    [{ align: [] }],
+                    ["image", "link", "video"],
+                    ["clean"],
+                  ],
+                }}
+              />
+              <button
+                onClick={selectedNote ? handleUpdateNote : handleAddNote}
+                className="notes-action-btn"
+              >
+                {selectedNote ? "Update Note" : "Add Note"}
+              </button>
+            </div>
+          </section>
 
-            <ReactQuill
-              value={content}
-              onChange={setContent}
-              theme="snow"
-              className="note-input quill-editor"
-              modules={{
-                toolbar: [
-                  [{ header: [1, 2, 3, false] }],
-                  [{ font: [] }],
-                  [{ size: [] }],
-                  [{ color: [] }, { background: [] }],
-                  ["bold", "italic", "underline", "strike"],
-                  [{ script: "sub" }, { script: "super" }],
-                  [{ list: "ordered" }, { list: "bullet" }],
-                  [{ align: [] }],
-                  ["image", "link", "video"],
-                  ["clean"],
-                ],
-              }}
-            />
-
-            <button onClick={selectedNote ? handleUpdateNote : handleAddNote}>
-              {selectedNote ? "Update Note" : "Add Note"}
-            </button>
-          </div>
-
-          <div className="notes-grid">
-            {notes.map((note) => (
-              <div key={note._id} className="note-box">
-                <h3>{note.title}</h3>
-                <div
-  className="note-preview"
-  dangerouslySetInnerHTML={{ __html: note.content.substring(0, 100) + (note.content.length > 100 ? "..." : "") }}
-/>
-
-
-                <div className="actions">
-                  <FaEdit
-                    className="edit-icon"
-                    style={{ color: "black" }}
-                    onClick={() => {
-                      setSelectedNote(note);
-                      setTitle(note.title);
-                      setContent(note.content);
+          {/* Right Section: Stored Notes (30%) */}
+          <section className="notes-storage-area">
+            <h2 className="notes-heading">Your Notes</h2>
+            <p className="notes-subheading">Quick Access</p>
+            <div className="notes-storage-list">
+              {notes.map((note) => (
+                <div key={note._id} className="notes-entry">
+                  <h3>{note.title}</h3>
+                  <div
+                    className="notes-entry-preview"
+                    dangerouslySetInnerHTML={{
+                      __html:
+                        note.content.substring(0, 100) +
+                        (note.content.length > 100 ? "..." : ""),
                     }}
                   />
-                  <FaTrash
-                    className="delete-icon"
-                    style={{ color: "black" }}
-                    onClick={() => handleDeleteNote(note._id)}
-                  />
+                  <div className="notes-entry-actions">
+                    <FaEdit
+                      className="notes-edit-btn"
+                      onClick={() => {
+                        setSelectedNote(note);
+                        setTitle(note.title);
+                        setContent(note.content);
+                      }}
+                    />
+                    <FaTrash
+                      className="notes-delete-btn"
+                      onClick={() => handleDeleteNote(note._id)}
+                    />
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </>
+              ))}
+            </div>
+          </section>
+        </div>
       )}
     </div>
   );

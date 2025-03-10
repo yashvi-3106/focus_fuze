@@ -158,8 +158,8 @@ const CalendarPage = () => {
       <CssBaseline />
       <div className="calendar-container">
         <section className="event-input-section">
-          <h2 className="section-title">Add New Event</h2>
-          <p className="section-subtitle">Schedule Your Day</p>
+          <h2 className="section-title1">Add New Event</h2>
+          <p className="section-subtitle1">Schedule Your Day</p>
           <div className="event-form">
             <TextField
               label="Event Title"

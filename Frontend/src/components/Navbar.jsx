@@ -37,7 +37,7 @@ const Navbar = () => {
         <Link to="/calendar" className="link">Calendar</Link>
         <Link to="/notes" className="link">Notes</Link>
         <Link to="/save-video" className="link">Cart</Link>
-        <Link to="/contact" className="link">Contact</Link>
+        <Link to="/team-goals" className="link">TeamGoal</Link>
       </div>
 
       {/* ✅ Logout Button in the Right Corner */}

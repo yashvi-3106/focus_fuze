@@ -15,6 +15,8 @@ import Auth from "./pages/Auth";
 import SaveVideo from "./pages/SaveVideo";
 // import Contact from "./pages/Contact";
 import VideoNote from "./pages/VideoNote";
+import TeamGoalPage from "./pages/TeamGoalPage";
+
 // In index.js or App.jsx
 import axios from "axios";
 axios.defaults.withCredentials = true;
@@ -47,6 +49,7 @@ const MainContent = () => {
         <Route path="/save-video" element={<SaveVideo />} />
         {/* <Route path="/contact" element={<Contact />} /> */}
         <Route path="/video/:videoId" element={<VideoNote />} />
+        <Route path="/team-goals" element={<TeamGoalPage />} />
       </Routes>
     </div>
   );
