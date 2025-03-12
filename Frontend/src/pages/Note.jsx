@@ -97,7 +97,7 @@ const Note = () => {
       let matchesDate = true;
       if (startDate || endDate) {
         const noteDate = new Date(note.createdAt);
-
+        
         if (startDate && endDate) {
           const start = new Date(startDate);
           start.setHours(0, 0, 0, 0);
@@ -113,7 +113,7 @@ const Note = () => {
           matchesDate = noteDate >= startOfDay && noteDate <= endOfDay;
         }
       }
-
+      
       return matchesSearch && matchesDate;
     })
     .sort((a, b) => {
@@ -149,26 +149,28 @@ const Note = () => {
                 onChange={(e) => setTitle(e.target.value)}
                 className="notes-title-field"
               />
-              <ReactQuill
-                value={content}
-                onChange={setContent}
-                theme="snow"
-                className="notes-quill-editor"
-                modules={{
-                  toolbar: [
-                    [{ header: [1, 2, 3, false] }],
-                    [{ font: [] }],
-                    [{ size: [] }],
-                    [{ color: [] }, { background: [] }],
-                    ["bold", "italic", "underline", "strike"],
-                    [{ script: "sub" }, { script: "super" }],
-                    [{ list: "ordered" }, { list: "bullet" }],
-                    [{ align: [] }],
-                    ["image", "link", "video"],
-                    ["clean"],
-                  ],
-                }}
-              />
+              <div className="notes-editor-wrapper">
+                <ReactQuill
+                  value={content}
+                  onChange={setContent}
+                  theme="snow"
+                  className="notes-quill-editor"
+                  modules={{
+                    toolbar: [
+                      [{ header: [1, 2, 3, false] }],
+                      [{ font: [] }],
+                      [{ size: [] }],
+                      [{ color: [] }, { background: [] }],
+                      ["bold", "italic", "underline", "strike"],
+                      [{ script: "sub" }, { script: "super" }],
+                      [{ list: "ordered" }, { list: "bullet" }],
+                      [{ align: [] }],
+                      ["image", "link", "video"],
+                      ["clean"],
+                    ],
+                  }}
+                />
+              </div>
               <button
                 onClick={selectedNote ? handleUpdateNote : handleAddNote}
                 className="notes-action-btn"
@@ -181,7 +183,7 @@ const Note = () => {
           <section className="notes-storage-area">
             <h2 className="notes-heading">Your Notes</h2>
             <p className="notes-subheading">Quick Access</p>
-
+            
             <div className="notes-filter-controls">
               <input
                 type="text"
@@ -190,7 +192,7 @@ const Note = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="notes-search-input"
               />
-
+              
               <div className="notes-date-filters">
                 <input
                   type="date"
@@ -207,7 +209,7 @@ const Note = () => {
                   min={startDate}
                 />
               </div>
-
+              
               <select
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value)}
