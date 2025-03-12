@@ -12,6 +12,10 @@ const Note = () => {
   const [userId] = useState(localStorage.getItem("userId") || "");
   const [selectedNote, setSelectedNote] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [sortOrder, setSortOrder] = useState("recent");
 
   const API_URL = "http://localhost:3000/notes";
 
@@ -84,6 +88,40 @@ const Note = () => {
     }
   };
 
+  const filteredNotes = notes
+    .filter((note) => {
+      const matchesSearch = note.title
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+
+      let matchesDate = true;
+      if (startDate || endDate) {
+        const noteDate = new Date(note.createdAt);
+        
+        if (startDate && endDate) {
+          const start = new Date(startDate);
+          start.setHours(0, 0, 0, 0);
+          const end = new Date(endDate);
+          end.setHours(23, 59, 59, 999);
+          matchesDate = noteDate >= start && noteDate <= end;
+        } else {
+          const selectedDate = new Date(startDate || endDate);
+          const startOfDay = new Date(selectedDate);
+          startOfDay.setHours(0, 0, 0, 0);
+          const endOfDay = new Date(selectedDate);
+          endOfDay.setHours(23, 59, 59, 999);
+          matchesDate = noteDate >= startOfDay && noteDate <= endOfDay;
+        }
+      }
+      
+      return matchesSearch && matchesDate;
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.createdAt);
+      const dateB = new Date(b.createdAt);
+      return sortOrder === "recent" ? dateB - dateA : dateA - dateB;
+    });
+
   return (
     <div className="notes-container">
       {loading && (
@@ -98,7 +136,6 @@ const Note = () => {
 
       {!loading && (
         <div className="notes-main-layout">
-          {/* Left Section: Note Input (70%) */}
           <section className="notes-input-area">
             <h2 className="notes-heading">
               {selectedNote ? "Edit Note" : "Create Note"}
@@ -112,26 +149,28 @@ const Note = () => {
                 onChange={(e) => setTitle(e.target.value)}
                 className="notes-title-field"
               />
-              <ReactQuill
-                value={content}
-                onChange={setContent}
-                theme="snow"
-                className="notes-quill-editor"
-                modules={{
-                  toolbar: [
-                    [{ header: [1, 2, 3, false] }],
-                    [{ font: [] }],
-                    [{ size: [] }],
-                    [{ color: [] }, { background: [] }],
-                    ["bold", "italic", "underline", "strike"],
-                    [{ script: "sub" }, { script: "super" }],
-                    [{ list: "ordered" }, { list: "bullet" }],
-                    [{ align: [] }],
-                    ["image", "link", "video"],
-                    ["clean"],
-                  ],
-                }}
-              />
+              <div className="notes-editor-wrapper">
+                <ReactQuill
+                  value={content}
+                  onChange={setContent}
+                  theme="snow"
+                  className="notes-quill-editor"
+                  modules={{
+                    toolbar: [
+                      [{ header: [1, 2, 3, false] }],
+                      [{ font: [] }],
+                      [{ size: [] }],
+                      [{ color: [] }, { background: [] }],
+                      ["bold", "italic", "underline", "strike"],
+                      [{ script: "sub" }, { script: "super" }],
+                      [{ list: "ordered" }, { list: "bullet" }],
+                      [{ align: [] }],
+                      ["image", "link", "video"],
+                      ["clean"],
+                    ],
+                  }}
+                />
+              </div>
               <button
                 onClick={selectedNote ? handleUpdateNote : handleAddNote}
                 className="notes-action-btn"
@@ -141,14 +180,51 @@ const Note = () => {
             </div>
           </section>
 
-          {/* Right Section: Stored Notes (30%) */}
           <section className="notes-storage-area">
             <h2 className="notes-heading">Your Notes</h2>
             <p className="notes-subheading">Quick Access</p>
+            
+            <div className="notes-filter-controls">
+              <input
+                type="text"
+                placeholder="Search by title..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="notes-search-input"
+              />
+              
+              <div className="notes-date-filters">
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="notes-date-input"
+                  max={endDate}
+                />
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="notes-date-input"
+                  min={startDate}
+                />
+              </div>
+              
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+                className="notes-sort-select"
+              >
+                <option value="recent">Recent First</option>
+                <option value="oldest">Oldest First</option>
+              </select>
+            </div>
+
             <div className="notes-storage-list">
-              {notes.map((note) => (
+              {filteredNotes.map((note) => (
                 <div key={note._id} className="notes-entry">
                   <h3>{note.title}</h3>
+                  <small>{new Date(note.createdAt).toLocaleDateString()}</small>
                   <div
                     className="notes-entry-preview"
                     dangerouslySetInnerHTML={{
