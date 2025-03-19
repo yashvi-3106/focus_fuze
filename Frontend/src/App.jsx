@@ -5,19 +5,16 @@ import "react-toastify/dist/ReactToastify.css"; // Import toast styles
 import SignIn from "./pages/SignIn";
 import Home from "./pages/Home";
 import PersonalGoal from "./pages/PersonalGoal";
-
-
 import Navbar from "./components/Navbar";
 import CalendarPage from "./pages/CalendarPage";
 import Note from "./pages/Note";
 import BlogPage from "./pages/BlogPage";
 import Auth from "./pages/Auth";
 import SaveVideo from "./pages/SaveVideo";
-// import Contact from "./pages/Contact";
 import VideoNote from "./pages/VideoNote";
 import TeamGoalPage from "./pages/TeamGoalPage";
 import Profile from "./pages/Profile";
-
+import ErrorBoundary from "./pages/ErrorBoundary";
 
 // In index.js or App.jsx
 import axios from "axios";
@@ -26,8 +23,20 @@ axios.defaults.withCredentials = true;
 const App = () => {
   return (
     <Router>
-      <ToastContainer position="top-right" autoClose={3000} /> {/* Global Toast Container */}
-      <MainContent />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      /> {/* Global Toast Container */}
+      <ErrorBoundary>
+        <MainContent />
+      </ErrorBoundary>
     </Router>
   );
 };
@@ -40,9 +49,9 @@ const MainContent = () => {
     <div>
       {!hideNavbar && <Navbar />}
       <Routes>
-        <Route path="/" element={<SignIn />} />               
-        <Route path="/login" element={<Auth />} />            
-        <Route path="/register" element={<SignIn />} />     
+        <Route path="/" element={<SignIn />} />
+        <Route path="/login" element={<Auth />} />
+        <Route path="/register" element={<SignIn />} />
         <Route path="/home" element={<Home />} />
         <Route path="/personal-goals" element={<PersonalGoal />} />
         <Route path="/calendar" element={<CalendarPage />} />
@@ -53,8 +62,6 @@ const MainContent = () => {
         <Route path="/video/:videoId" element={<VideoNote />} />
         <Route path="/team-goals" element={<TeamGoalPage />} />
         <Route path="/profile" element={<Profile />} />
-   
-
       </Routes>
     </div>
   );

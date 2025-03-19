@@ -30,6 +30,10 @@ const io = new Server(server, {
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   },
+  path: "/socket.io",
+  transports: ["websocket", "polling"], // Ensure both transports are allowed
+  pingTimeout: 60000, // Increase timeout to handle slow connections
+  pingInterval: 25000,
 });
 
 app.use(express.json({ limit: "50mb" }));
@@ -76,19 +80,19 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || "default_secret",
-    resave: false,
-    saveUninitialized: true,
-    cookie: {
-      secure: process.env.NODE_ENV === "production",
-      httpOnly: true,
-      sameSite: "Lax",
-      maxAge: 1000 * 60 * 60 * 24,
-    },
-  })
-);
+const sessionMiddleware = session({
+  secret: process.env.SESSION_SECRET || "default_secret",
+  resave: false,
+  saveUninitialized: false, // Set to false to avoid creating sessions for unauthenticated users
+  cookie: {
+    secure: process.env.NODE_ENV === "production",
+    httpOnly: true,
+    sameSite: "Lax",
+    maxAge: 1000 * 60 * 60 * 24,
+  },
+});
+
+app.use(sessionMiddleware);
 
 app.use("/auth", authenticationRoutes);
 app.use("/personal-goals", personalGoalRoutes);
@@ -109,71 +113,89 @@ app.use((req, res, next) => {
 });
 
 const onlineUsers = new Map();
-const meetingParticipants = new Map(); // Map to track participants in each meeting
+const meetingParticipants = new Map();
 
+// Simplify Socket.IO session handling
 io.use((socket, next) => {
-  session(socket.request, socket.request.res || {}, next);
+  sessionMiddleware(socket.request, socket.request.res || {}, (err) => {
+    if (err) {
+      console.error("Session middleware error:", err);
+      return next(err);
+    }
+    if (!socket.request.session || !socket.request.session.userId) {
+      console.log("No session or userId found for socket:", socket.id);
+      return next(new Error("Authentication required"));
+    }
+    socket.userId = socket.request.session.userId;
+    next();
+  });
 });
 
 io.on("connection", (socket) => {
   console.log("New user connected:", socket.id);
 
-  socket.on("authenticate", async (userId) => {
-    if (socket.request.session && socket.request.session.userId) {
-      const user = await mongoose.model("User").findById(userId);
-      if (user) {
-        onlineUsers.set(userId, { socketId: socket.id, name: user.username || user.email.split("@")[0] });
-        io.emit("updateUserList", Array.from(onlineUsers.entries()).map(([id, data]) => ({ id, name: data.name })));
-        console.log("User authenticated:", userId, "Online users:", onlineUsers.size);
-      }
+  socket.on("authenticate", (data) => {
+    const { userId, userName } = data;
+    if (socket.userId === userId) {
+      onlineUsers.set(userId, { socketId: socket.id, name: userName });
+      io.emit("updateUserList", Array.from(onlineUsers.entries()).map(([id, data]) => ({ id, name: data.name })));
+      console.log("User authenticated:", userId, "Online users:", onlineUsers.size);
     } else {
-      console.log("No session found for socket:", socket.id);
+      console.log("Authentication mismatch for socket:", socket.id);
       socket.disconnect(true);
     }
   });
 
   socket.on("initiateMeeting", (data) => {
-    const { leaderId, meetingId, goalId } = data;
-    if (socket.request.session.userId === leaderId) {
+    const { leaderId, meetingId, goalId, leaderName } = data;
+    if (socket.userId === leaderId) {
       socket.join(meetingId);
-      // Initialize participants list for this meeting
+      socket.isLeader = true;
+      socket.meetingId = meetingId;
       if (!meetingParticipants.has(meetingId)) {
         meetingParticipants.set(meetingId, new Map());
       }
       const participants = meetingParticipants.get(meetingId);
-      participants.set(leaderId, { userId: leaderId, userName: onlineUsers.get(leaderId)?.name, isLeader: true });
+      participants.set(leaderId, { userId: leaderId, userName: leaderName, isLeader: true, socketId: socket.id });
       io.to(meetingId).emit("updateParticipants", Array.from(participants.values()));
-      io.emit("meetingStarted", { meetingId, leaderId, leaderName: onlineUsers.get(leaderId)?.name, goalId });
-      console.log(`Meeting ${meetingId} initiated by ${leaderId} for goal ${goalId}`);
+      io.emit("meetingStarted", { meetingId, leaderId, leaderName, goalId });
+      console.log(`Meeting ${meetingId} initiated by ${leaderName} (${leaderId}) for goal ${goalId}`);
     }
   });
 
-  socket.on("joinMeeting", ({ meetingId, userId, goalId }) => {
+  socket.on("joinMeeting", ({ meetingId, userId, userName, goalId }) => {
     const user = onlineUsers.get(userId);
-    if (user && io.sockets.adapter.rooms.has(meetingId)) {
+    if (user && socket.userId === userId) {
       socket.join(meetingId);
-      const participants = meetingParticipants.get(meetingId);
-      if (participants) {
-        participants.set(userId, { userId, userName: user.name, isLeader: false, socketId: socket.id });
-        io.to(meetingId).emit("userJoinedMeeting", {
-          userId,
-          userName: user.name,
-          socketId: socket.id,
-        });
-        io.to(meetingId).emit("updateParticipants", Array.from(participants.values()));
-        console.log(`${userId} joined meeting ${meetingId} for goal ${goalId}`);
+      socket.meetingId = meetingId;
+      if (!meetingParticipants.has(meetingId)) {
+        meetingParticipants.set(meetingId, new Map());
       }
+      const participants = meetingParticipants.get(meetingId);
+      participants.set(userId, { userId, userName, isLeader: false, socketId: socket.id });
+
+      socket.to(meetingId).emit("userJoinedMeeting", {
+        userId,
+        userName,
+        socketId: socket.id,
+        goalId,
+      });
+
+      io.to(meetingId).emit("updateParticipants", Array.from(participants.values()));
+      console.log(`${userId} (${userName}) joined meeting ${meetingId} for goal ${goalId}`);
     } else {
-      socket.emit("joinMeetingError", "Meeting not found or user not authenticated");
+      socket.emit("joinMeetingError", "User not authenticated");
     }
   });
 
   socket.on("signal", (data) => {
-    const { to, signal } = data;
+    const { to, signal, from } = data;
     const toSocket = io.sockets.sockets.get(to);
     if (toSocket) {
-      toSocket.emit("signal", { from: socket.id, signal });
-      console.log(`Signal sent from ${socket.id} to ${to}`);
+      toSocket.emit("signal", { from, signal });
+      console.log(`Signal sent from ${from} to ${to}`);
+    } else {
+      console.log(`Failed to send signal to ${to}: Socket not found`);
     }
   });
 
@@ -182,10 +204,12 @@ io.on("connection", (socket) => {
       const participants = meetingParticipants.get(meetingId);
       participants.delete(userId);
       if (participants.size === 0) {
-        meetingParticipants.delete(meetingId); // Clean up if no participants remain
+        meetingParticipants.delete(meetingId);
       } else {
+        socket.to(meetingId).emit("userDisconnected", { userId });
         io.to(meetingId).emit("updateParticipants", Array.from(participants.values()));
       }
+      console.log(`${userId} left meeting ${meetingId}`);
     }
   });
 
@@ -196,13 +220,13 @@ io.on("connection", (socket) => {
         io.emit("updateUserList", Array.from(onlineUsers.entries()).map(([id, data]) => ({ id, name: data.name })));
         io.emit("userDisconnected", { userId: id });
 
-        // Remove from meeting participants
         for (let [meetingId, participants] of meetingParticipants.entries()) {
           if (participants.has(id)) {
             participants.delete(id);
             if (participants.size === 0) {
               meetingParticipants.delete(meetingId);
             } else {
+              io.to(meetingId).emit("userDisconnected", { userId: id });
               io.to(meetingId).emit("updateParticipants", Array.from(participants.values()));
             }
           }

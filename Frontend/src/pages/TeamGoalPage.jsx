@@ -5,8 +5,7 @@ import { io } from "socket.io-client";
 import SimplePeer from "simple-peer";
 import { Buffer } from "buffer";
 import { Button, TextField, Typography } from "@mui/material";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
 import "./TeamGoalPage.css";
 
 // Polyfill Buffer globally
@@ -32,13 +31,14 @@ const TeamGoalPage = () => {
   const [peers, setPeers] = useState({});
   const [myStream, setMyStream] = useState(null);
   const [participants, setParticipants] = useState([]);
-  const [mediaError, setMediaError] = useState(null); // Track media access errors
+  const [mediaError, setMediaError] = useState(null);
   const socketRef = useRef();
   const peersRef = useRef({});
   const streamRef = useRef(null);
-  const mediaAccessRequested = useRef(false); // Prevent multiple media requests
+  const mediaAccessRequested = useRef(false);
 
   const API_URL = "https://focus-fuze.onrender.com/team-goals";
+  const SOCKET_URL = "https://focus-fuze.onrender.com";
 
   const stopMediaStream = () => {
     if (streamRef.current) {
@@ -50,20 +50,28 @@ const TeamGoalPage = () => {
   };
 
   const requestMediaAccess = async () => {
-    if (mediaAccessRequested.current || streamRef.current) return; // Avoid multiple requests
+    if (mediaAccessRequested.current || streamRef.current) return;
     mediaAccessRequested.current = true;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      const canvas = document.createElement("canvas");
+      canvas.width = 640;
+      canvas.height = 480;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "black";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "white";
+      ctx.font = "30px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText(username || "Unknown User", canvas.width / 2, canvas.height / 2);
+      const stream = canvas.captureStream(30);
       streamRef.current = stream;
       setMyStream(stream);
       setMediaError(null);
+      console.log("Fake stream created for user:", username);
     } catch (err) {
-      console.error("Media access error:", err);
+      console.error("Fake stream error:", err);
       setMediaError(err.name);
-      toast.error(
-        "Failed to access camera/microphone. Ensure no other app is using them or retry.",
-        { autoClose: false }
-      );
+      toast.error("Failed to create fake stream. Please try again.", { autoClose: false });
       mediaAccessRequested.current = false;
     }
   };
@@ -73,7 +81,6 @@ const TeamGoalPage = () => {
     fetchUsers();
     initializeSocket();
 
-    // Cleanup on unmount
     return () => {
       stopMediaStream();
       socketRef.current?.disconnect();
@@ -81,17 +88,31 @@ const TeamGoalPage = () => {
   }, []);
 
   const initializeSocket = () => {
-    socketRef.current = io("https://focus-fuze.onrender.com", { withCredentials: true });
+    socketRef.current = io(SOCKET_URL, {
+      withCredentials: true,
+      path: "/socket.io",
+      transports: ["polling", "websocket"],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+    });
 
-    socketRef.current.on("connect", () => console.log("Connected to Socket.IO"));
-    socketRef.current.on("connect_error", (error) => console.error("Connection error:", error.message));
-    socketRef.current.emit("authenticate", userId);
+    socketRef.current.on("connect", () => {
+      console.log("Connected to Socket.IO", socketRef.current.id);
+      socketRef.current.emit("authenticate", { userId, userName: username });
+    });
+
+    socketRef.current.on("connect_error", (error) => {
+      console.error("Socket.IO connection error:", error.message);
+      toast.error("Failed to connect to real-time server. Check your network or retry.");
+    });
 
     socketRef.current.on("updateUserList", (userList) => {
-      // Optionally use for member presence
+      console.log("Updated user list:", userList);
     });
 
     socketRef.current.on("meetingStarted", (data) => {
+      console.log("Meeting started event received:", data);
       if (data.goalId === selectedGoal?.taskId) {
         setMeetingId(data.meetingId);
         toast.info(`Meeting ${data.meetingId} started by ${data.leaderName} for goal ${data.goalId}`);
@@ -99,17 +120,41 @@ const TeamGoalPage = () => {
     });
 
     socketRef.current.on("userJoinedMeeting", (data) => {
-      if (isMeetingActive && data.userId !== userId && selectedGoal?.taskId === data.goalId) {
-        createPeer(data.userId, socketRef.current.id, data.socketId);
+      console.log("User joined meeting event received:", data);
+      if (data.userId !== userId && selectedGoal?.taskId === data.goalId) {
+        console.log(`User ${data.userId} joined meeting ${meetingId}, initiating peer connection`);
+        if (streamRef.current) {
+          createPeer(data.userId, socketRef.current.id, data.socketId, false);
+        } else {
+          console.warn("No stream available to initiate peer connection with", data.userId);
+        }
+      } else {
+        console.log("Skipping peer connection initiation:", { userId, dataUserId: data.userId, goalId: selectedGoal?.taskId, dataGoalId: data.goalId });
       }
     });
 
     socketRef.current.on("updateParticipants", (participantsList) => {
+      console.log("Update participants event received:", participantsList);
       setParticipants(participantsList);
+
+      participantsList.forEach((participant) => {
+        if (participant.userId !== userId && !peers[participant.userId] && participant.socketId) {
+          console.log(`Initiating peer connection with ${participant.userId} (${participant.socketId})`);
+          if (streamRef.current) {
+            createPeer(participant.userId, socketRef.current.id, participant.socketId, false);
+          } else {
+            console.warn("No stream available to initiate peer connection with", participant.userId);
+          }
+        } else {
+          console.log("Skipping peer connection for participant:", participant);
+        }
+      });
     });
 
     socketRef.current.on("userDisconnected", (data) => {
+      console.log("User disconnected event received:", data);
       if (peers[data.userId]) {
+        console.log(`User ${data.userId} disconnected, cleaning up peer`);
         peers[data.userId].peer.destroy();
         const newPeers = { ...peers };
         delete newPeers[data.userId];
@@ -118,45 +163,104 @@ const TeamGoalPage = () => {
     });
 
     socketRef.current.on("signal", (data) => {
+      console.log("Signal event received:", data);
       if (peers[data.from]) {
+        console.log(`Signaling existing peer for ${data.from}`);
         peers[data.from].peer.signal(data.signal);
       } else {
-        createPeer(data.from, socketRef.current.id, null, data.signal);
+        console.log(`Creating new peer for ${data.from} due to incoming signal`);
+        createPeer(data.from, socketRef.current.id, data.from, true, data.signal);
       }
     });
   };
 
-  const createPeer = (userId, callerId, recipientId, signal) => {
+  const createPeer = (userId, callerId, recipientId, initiator, signalData) => {
+    console.log(
+      `Creating peer for ${userId}, initiator: ${initiator}, caller: ${callerId}, recipient: ${recipientId}`
+    );
+    if (!streamRef.current) {
+      console.warn("No local stream available to create peer for", userId);
+      return;
+    }
+
     const peer = new SimplePeer({
-      initiator: callerId === socketRef.current.id,
-      trickle: false,
+      initiator,
+      trickle: true, // Enable trickle ICE
       stream: streamRef.current,
+      config: {
+        iceServers: [
+          { urls: "stun:stun.l.google.com:19302" },
+          // Add TURN server if needed
+        ],
+      },
     });
 
-    if (signal) peer.signal(signal);
+    console.log("Stream added to peer:", streamRef.current);
+
+    let retryCount = 0;
+    const maxRetries = 3;
+
+    if (signalData) {
+      console.log("Signaling peer with initial signal:", signalData);
+      peer.signal(signalData);
+    }
 
     peer.on("signal", (signal) => {
-      socketRef.current.emit("signal", { to: recipientId || null, signal });
+      console.log(`Sending signal from ${callerId} to ${recipientId}:`, signal);
+      socketRef.current.emit("signal", { to: recipientId, signal, from: callerId });
     });
 
     peer.on("stream", (stream) => {
-      setPeers((prev) => ({ ...prev, [userId]: { peer, stream } }));
+      console.log(`Received stream from ${userId}`);
+      setPeers((prev) => {
+        const updatedPeers = { ...prev, [userId]: { peer, stream } };
+        console.log("Updated peers:", updatedPeers);
+        return updatedPeers;
+      });
     });
 
-    peer.on("error", (err) => console.error("Peer error:", err));
+    peer.on("connect", () => {
+      console.log(`Peer connection established with ${userId}`);
+    });
+
+    peer.on("error", (err) => {
+      console.error("Peer error for", userId, ":", err);
+      if (retryCount < maxRetries) {
+        retryCount++;
+        console.log(`Retrying peer connection for ${userId}, attempt ${retryCount}`);
+        createPeer(userId, callerId, recipientId, initiator, signalData);
+      } else {
+        toast.error(`Failed to connect to ${userId}'s stream after ${maxRetries} attempts.`);
+      }
+    });
+
+    peer.on("close", () => {
+      console.log(`Peer connection closed with ${userId}`);
+    });
 
     peersRef.current[userId] = peer;
-    setPeers((prev) => ({ ...prev, [userId]: { peer } }));
+    setPeers((prev) => {
+      const updatedPeers = { ...prev, [userId]: { peer } };
+      console.log("Initial peer setup:", updatedPeers);
+      return updatedPeers;
+    });
   };
 
   const fetchGoals = async () => {
     setLoading(true);
     try {
       const response = await axios.get(API_URL, { params: { userId } });
-      setGoals(response.data);
-      setLoading(false);
+      if (Array.isArray(response.data)) {
+        setGoals(response.data);
+      } else {
+        console.error("Expected an array for goals, received:", response.data);
+        setGoals([]);
+      }
     } catch (error) {
       console.error("Error fetching goals:", error);
+      setGoals([]);
+      toast.error("Failed to fetch goals. Please try again.");
+    } finally {
       setLoading(false);
     }
   };
@@ -164,9 +268,16 @@ const TeamGoalPage = () => {
   const fetchUsers = async () => {
     try {
       const response = await axios.get(`${API_URL}/users`);
-      setAllUsers(response.data);
+      if (Array.isArray(response.data)) {
+        setAllUsers(response.data);
+      } else {
+        console.error("Expected an array for users, received:", response.data);
+        setAllUsers([]);
+      }
     } catch (error) {
       console.error("Error fetching users:", error);
+      setAllUsers([]);
+      toast.error("Failed to fetch users. Please try again.");
     }
   };
 
@@ -200,6 +311,7 @@ const TeamGoalPage = () => {
     } catch (error) {
       console.error("Error creating goal:", error);
       setLoading(false);
+      toast.error("Failed to create goal. Please try again.");
     }
   };
 
@@ -225,6 +337,7 @@ const TeamGoalPage = () => {
     } catch (error) {
       console.error("Error adding member:", error);
       setLoading(false);
+      toast.error("Failed to add member. Please try again.");
     }
   };
 
@@ -244,6 +357,7 @@ const TeamGoalPage = () => {
     } catch (error) {
       console.error("Error adding comment:", error);
       setLoading(false);
+      toast.error("Failed to add comment. Please try again.");
     }
   };
 
@@ -259,6 +373,7 @@ const TeamGoalPage = () => {
     } catch (error) {
       console.error("Error editing comment:", error);
       setLoading(false);
+      toast.error("Failed to edit comment. Please try again.");
     }
   };
 
@@ -272,6 +387,7 @@ const TeamGoalPage = () => {
     } catch (error) {
       console.error("Error deleting comment:", error);
       setLoading(false);
+      toast.error("Failed to delete comment. Please try again.");
     }
   };
 
@@ -288,15 +404,18 @@ const TeamGoalPage = () => {
   const startMeeting = async () => {
     if (!userId || !selectedGoal) return toast.error("Please select a goal to start a meeting");
 
-    // Request media access before starting the meeting
     await requestMediaAccess();
-    if (!streamRef.current) return; // Stop if media access failed
+    if (!streamRef.current) {
+      toast.error("Cannot start meeting without media access.");
+      return;
+    }
 
     const newMeetingId = `meeting_${Date.now()}_${selectedGoal.taskId}`;
     setMeetingId(newMeetingId);
     setIsMeetingActive(true);
     socketRef.current.emit("initiateMeeting", {
       leaderId: userId,
+      leaderName: username,
       meetingId: newMeetingId,
       goalId: selectedGoal.taskId,
     });
@@ -311,11 +430,13 @@ const TeamGoalPage = () => {
   const joinMeeting = async () => {
     if (!meetingId || !selectedGoal) return toast.warn("Please enter a meeting ID and select a goal");
 
-    // Request media access before joining the meeting
     await requestMediaAccess();
-    if (!streamRef.current) return; // Stop if media access failed
+    if (!streamRef.current) {
+      toast.error("Cannot join meeting without media access.");
+      return;
+    }
 
-    socketRef.current.emit("joinMeeting", { meetingId, userId, goalId: selectedGoal.taskId });
+    socketRef.current.emit("joinMeeting", { meetingId, userId, userName: username, goalId: selectedGoal.taskId });
     setIsMeetingActive(true);
     setView("meeting");
     toast.info(`Joined meeting ${meetingId} for goal ${selectedGoal.title}`);
@@ -326,21 +447,29 @@ const TeamGoalPage = () => {
     setMeetingId("");
     Object.values(peers).forEach(({ peer }) => peer.destroy());
     setPeers({});
+    peersRef.current = {};
     setParticipants([]);
     socketRef.current.emit("leaveMeeting", { meetingId, userId });
-    stopMediaStream(); // Stop the media stream when leaving
+    stopMediaStream();
     setView("dashboard");
     toast.info("Left the meeting");
   };
 
   const retryMediaAccess = async () => {
-    stopMediaStream(); // Stop any existing stream
+    stopMediaStream();
     await requestMediaAccess();
+    if (streamRef.current && participants.length > 0) {
+      participants.forEach((participant) => {
+        if (participant.userId !== userId && !peers[participant.userId] && participant.socketId) {
+          console.log(`Re-initiating peer connection with ${participant.userId} (${participant.socketId})`);
+          createPeer(participant.userId, socketRef.current.id, participant.socketId, false);
+        }
+      });
+    }
   };
 
   return (
     <div className="team-goal-container">
-      <ToastContainer position="top-right" autoClose={3000} />
       {loading && (
         <div className="team-goal-loader-container">
           <img
@@ -362,19 +491,23 @@ const TeamGoalPage = () => {
                 </button>
               </div>
               <div className="team-goal-list">
-                {goals.map((goal) => (
-                  <div
-                    key={goal.taskId}
-                    className="team-goal-item"
-                    onClick={() => {
-                      setSelectedGoal(goal);
-                      setView("dashboard");
-                    }}
-                  >
-                    <h3>{goal.title}</h3>
-                    <p>Role: {goal.leaderId === userId ? "Leader" : "Member"}</p>
-                  </div>
-                ))}
+                {goals && goals.length > 0 ? (
+                  goals.map((goal) => (
+                    <div
+                      key={goal.taskId}
+                      className="team-goal-item"
+                      onClick={() => {
+                        setSelectedGoal(goal);
+                        setView("dashboard");
+                      }}
+                    >
+                      <h3>{goal.title}</h3>
+                      <p>Role: {goal.leaderId === userId ? "Leader" : "Member"}</p>
+                    </div>
+                  ))
+                ) : (
+                  <Typography variant="body1">No goals found. Create a new goal to get started!</Typography>
+                )}
               </div>
             </div>
           )}
@@ -590,37 +723,65 @@ const TeamGoalPage = () => {
               <Typography variant="h6" style={{ marginTop: "10px" }}>
                 Participants ({participants.length}):
               </Typography>
-              <div className="video-container">
-                {streamRef.current && !mediaError && (
+              <div className="video-container" style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
+                {myStream && !mediaError && (
                   <div className="video-wrapper" key={`${userId}-local-${Date.now()}`}>
                     <Typography variant="body2" style={{ textAlign: "center" }}>
                       {username} (You{isLeader ? ", Leader" : ""})
                     </Typography>
                     <video
                       ref={(video) => {
-                        if (video && streamRef.current) video.srcObject = streamRef.current;
+                        if (video && myStream) {
+                          video.srcObject = myStream;
+                          video.play().catch((err) => console.error("Local video play error:", err));
+                        }
                       }}
                       autoPlay
                       muted
-                      style={{ width: "300px", height: "200px", backgroundColor: "black" }}
+                      style={{ width: "300px", height: "200px", backgroundColor: "black", borderRadius: "8px" }}
                     />
                   </div>
                 )}
-                {Object.entries(peers).map(([peerUserId, { stream }], index) => {
+
+                {Object.entries(peers).map(([peerUserId, peerData]) => {
                   const participant = participants.find((p) => p.userId === peerUserId);
-                  if (!participant || !stream) return null;
+                  if (!participant) {
+                    console.log(`Participant not found for peerUserId: ${peerUserId}`);
+                    return null;
+                  }
+
+                  console.log(`Rendering stream for ${peerUserId}:`, peerData);
                   return (
-                    <div key={`${peerUserId}-${index}-${Date.now()}`} className="video-wrapper">
+                    <div key={peerUserId} className="video-wrapper">
                       <Typography variant="body2" style={{ textAlign: "center" }}>
                         {participant.userName} {participant.isLeader ? "(Leader)" : ""}
                       </Typography>
-                      <video
-                        ref={(video) => {
-                          if (video && stream) video.srcObject = stream;
-                        }}
-                        autoPlay
-                        style={{ width: "300px", height: "200px", backgroundColor: "black" }}
-                      />
+                      {peerData.stream ? (
+                        <video
+                          ref={(video) => {
+                            if (video && peerData.stream) {
+                              video.srcObject = peerData.stream;
+                              video.play().catch((err) => console.error(`Video play error for ${peerUserId}:`, err));
+                            }
+                          }}
+                          autoPlay
+                          style={{ width: "300px", height: "200px", backgroundColor: "black", borderRadius: "8px" }}
+                        />
+                      ) : (
+                        <div
+                          style={{
+                            width: "300px",
+                            height: "200px",
+                            backgroundColor: "gray",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            borderRadius: "8px",
+                          }}
+                        >
+                          <Typography variant="body2">Waiting for stream...</Typography>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
