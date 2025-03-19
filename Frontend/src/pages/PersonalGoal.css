@@ -201,12 +201,27 @@
 .delete-btn {
   background-color: #dc3545;
   color: white;
-  left: 270px; /* Default position, adjust as needed */
-  bottom: 10px; /* Default position, adjust as needed */
+  left: 270px;
+  top: -2rem;
 }
 
+.completed-btn {
+  background-color: #65bf5b;
+  color: white;
+  left: 95px;
+}
+
+.disabled-btn {
+  background-color: #28a745; /* Green */
+  color: white;
+  cursor: not-allowed;
+  left: 100px;
+}
+
+
 .edit-btn:hover,
-.delete-btn:hover {
+.delete-btn:hover,
+.completed-btn:hover {
   opacity: 0.9;
   transform: scale(1.05);
 }
