@@ -34,14 +34,16 @@ const Navbar = () => {
       <div className="item">
 
         <Link to="/personal-goals" className="link">PersonalGoals</Link>
-        <Link to="/calendar" className="link">Calendar</Link>
-        <Link to="/notes" className="link">Notes</Link>
-        <Link to="/save-video" className="link">Cart</Link>
         <Link to="/team-goals" className="link">TeamGoal</Link>
-      </div>
+        <Link to="/notes" className="link">Notes</Link>
+        <Link to="/calendar" className="link">Calendar</Link>
+        <Link to="/save-video" className="link">NoteTube</Link>
+        <Link to="/chat" className="link">Chat</Link>
+        <Link to="/profile" className="link">Profile</Link>
+    
 
-      {/* ✅ Logout Button in the Right Corner */}
-      <button className="logout-btn" onClick={handleLogout}>Logout</button>
+        
+      </div>
     </nav>
   );
 };

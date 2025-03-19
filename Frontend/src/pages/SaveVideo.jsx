@@ -18,10 +18,11 @@ const SaveVideo = () => {
     setLoading(true);
     try {
       const res = await axios.get(`http://localhost:3000/api/videos/saved/${userId}`);
-      setSavedVideos(res.data);
+      setSavedVideos(res.data || []); // Ensure data is an array
     } catch (error) {
-      toast.error("Error fetching videos!");
+     
       console.error("Error fetching videos:", error);
+      setSavedVideos([]); // Reset to empty array on error
     }
     setTimeout(() => setLoading(false), 1000); // Hide loader after 1 second
   };
@@ -61,17 +62,17 @@ const SaveVideo = () => {
   };
 
   return (
-    <div className="container-cart">
+    <div className="video-main-container">
       {/* Toast notification container at top-right */}
-      <ToastContainer position="top-right" autoClose={2000} />
+      <ToastContainer position="top-right" autoClose={2000} className="video-toast-container" />
 
       {/* Show loader while API is fetching */}
       {loading && (
-        <div className="loader-container11">
+        <div className="video-loader-container">
           <img
             src="https://cdn-icons-png.freepik.com/256/11857/11857533.png"
             alt="Loading..."
-            className="loader11"
+            className="video-loader"
           />
         </div>
       )}
@@ -79,7 +80,7 @@ const SaveVideo = () => {
       <h2>Save YouTube Videos</h2>
 
       {/* Input Field for Entering YouTube URL */}
-      <div className="input-container">
+      <div className="video-input-container">
         <input
           type="text"
           placeholder="Enter YouTube video URL"
@@ -92,20 +93,29 @@ const SaveVideo = () => {
       {/* List of Saved Videos */}
       <div className="video-list">
         {savedVideos.length === 0 ? (
-          <p>No videos saved yet.</p>
+          <p className="video-no-videos">No videos saved yet.</p>
         ) : (
           savedVideos.map((video) => {
             const videoId = new URL(video.videoUrl).searchParams.get("v");
-
+            if (!videoId) {
+              console.warn("Invalid video URL for video:", video._id, video.videoUrl);
+              return null; // Skip invalid URLs
+            }
+            console.log("Rendering video card for:", video._id); // Debug log
             return (
               <div key={video._id} className="video-card">
                 <div className="thumbnail" onClick={() => navigate(`/video/${video._id}`)}>
                   <img
                     src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
                     alt="Video Thumbnail"
+                    onError={(e) => (e.target.src = "https://via.placeholder.com/480x360?text=Thumbnail+Error")}
                   />
                 </div>
-                <button className="delete-btn" onClick={() => deleteVideo(video._id)}>Delete</button>
+                <div className="video-card-footer">
+                  <button className="delete-btn" onClick={() => deleteVideo(video._id)}>
+                    Delete
+                  </button>
+                </div>
               </div>
             );
           })

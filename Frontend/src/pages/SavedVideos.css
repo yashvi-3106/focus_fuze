@@ -1,166 +1,173 @@
+.video-main-container {
+  height: 100vh;
+  width: 96.3vw;
+  overflow: hidden;
+  position: relative;
+  background: linear-gradient(#e6f0fa, #b3d4fc);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* overflow-x: hidden; */
+  margin-top: 1em;
+}
 
-.container-cart {
-    width: 100vw;
-    /* margin: 30px auto; */
-    text-align: center;
-    font-family: Arial, sans-serif;
-    background-color: #060606;
-    overflow-x: hidden;
-    height: auto; /* Expands dynamically */
-    /* margin-top: -13em; */
-    height: 100vh;
-  }
-  
- 
-  .save {
-    color: #333;
-    margin-bottom: 20px;
-  }
-  
+.video-main-container h2 {
+  color: #1a3c5e;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 24px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
 
-  .input-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 20px;
-    margin-top: 5em;
-    /* margin-left: -54em; */
-  }
-  
-  .input-container input {
-    flex: 1;
-    max-width: 500px;
-    padding: 12px;
-    border: 2px solid #ccc;
-    border-radius: 5px;
-    font-size: 16px;
+.video-input-container {
+  width: 100%;
+  max-width: 600px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+}
 
-  }
-  
-  .input-container button {
-    padding: 12px 20px;
-    background-color: #ff0000;
-    color: white;
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
-    font-size: 16px;
-    transition: 0.3s;
-    margin-bottom: 0.6em;
-  }
-  
-  .input-container button:hover {
-    background-color: #cc0000;
-  }
-  
-  .video-list {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 15px;
-    justify-content: center;
-    padding: 10px;
-    background-color: #060606;
-  }
-  
+.video-input-container input {
+  flex: 1;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
 
-  
-  .video-card {
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: #1e1e1e; /* Dark background for contrast */
-    border-radius: 10px;
-    padding: 5px; /* Reduce padding */
-    width: 340px; /* Adjust size as needed */
-    height: 250px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    position: relative;
-    border: 2px solid transparent; /* Initially transparent border */
-    transition: border 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-  }
-  
-  /* Glowing border effect on hover */
-  .video-card:hover {
-    border-color: #ff0000; /* Red glow */
-    box-shadow: 0 0 15px #ff0000;
-  }
-  
-  /* Thumbnail inside the video box */
-  .thumbnail img {
-    width: 320px;
-    height: 180px;
-    border-radius: 8px;
-    margin-top: 0em;
-  }
-  
-  /* Delete button */
-.delete-btn {
-    position: absolute;
-    bottom: 10px;
-    right: 10px;
-    background: #ff4444; /* Default red */
-    color: white; /* Always white text */
-    border: none;
-    border-radius: 5px;
-    padding: 8px 12px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background 0.4s ease-in-out, transform 0.2s;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  /* Delete button hover effect - Light red background */
-  .delete-btn:hover {
-    background: #ff7777; /* Light red on hover */
-    transform: scale(1.05); /* Slight scale effect */
-  }
-  
-  /* Right-to-left hover effect */
-  .delete-btn::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 100%;
-    width: 100%;
-    height: 100%;
-    background: #ff7777; /* Light red hover color */
-    transition: left 0.4s ease-in-out;
-    z-index: -1;
-  }
-  
-  .delete-btn:hover::before {
-    left: 0;
-  }
-  
-  
-  
-  /* Loader Container */
-.loader-container11 {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh; /* Full screen height */
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    background: rgba(0, 0, 0, 0.5); /* Slight dark overlay */
-    z-index: 999;
-  }
-  
-  /* Loader Animation */
-  .loader11 {
-    width: 80px;
-    height: 80px;
-    animation: spin 1s linear infinite;
-  }
-  
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-  
+.video-input-container input:focus {
+  border-color: #1a3c5e;
+  box-shadow: 0 0 5px rgba(26, 60, 94, 0.3);
+}
+
+.video-input-container button {
+  background: linear-gradient(45deg, #b3d4fc, #1a3c5e);
+  color: #fff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.video-input-container button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(179, 212, 252, 0.4);
+  background: linear-gradient(45deg, #1a3c5e, #b3d4fc);
+}
+
+.video-list {
+  width: 90%;
+  /* max-width: 1200px; */
+  flex-grow: 1;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.video-card {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  height: 280px; /* Increased height to ensure space for footer */
+}
+
+.video-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 15px rgba(179, 212, 252, 0.4);
+}
+
+.video-card .thumbnail {
+  cursor: pointer;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+}
+
+.video-card .thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.video-card-footer {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  background: #f9f9f9; /* Light background to distinguish footer */
+}
+
+.video-card .delete-btn {
+  background: #d32f2f; /* Red background for visibility */
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 15px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  width: 100%; /* Ensure button takes full width of footer */
+}
+
+.video-card .delete-btn:hover {
+  background: #b71c1c;
+}
+
+.video-no-videos {
+  text-align: center;
+  color: #757575;
+  font-size: 16px;
+  grid-column: 1 / -1;
+}
+
+.video-loader-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.video-loader {
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.video-toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+}

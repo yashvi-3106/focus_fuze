@@ -16,6 +16,8 @@ import SaveVideo from "./pages/SaveVideo";
 // import Contact from "./pages/Contact";
 import VideoNote from "./pages/VideoNote";
 import TeamGoalPage from "./pages/TeamGoalPage";
+import Profile from "./pages/Profile";
+
 
 // In index.js or App.jsx
 import axios from "axios";
@@ -50,6 +52,9 @@ const MainContent = () => {
         {/* <Route path="/contact" element={<Contact />} /> */}
         <Route path="/video/:videoId" element={<VideoNote />} />
         <Route path="/team-goals" element={<TeamGoalPage />} />
+        <Route path="/profile" element={<Profile />} />
+   
+
       </Routes>
     </div>
   );

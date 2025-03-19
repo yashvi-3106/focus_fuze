@@ -99,18 +99,38 @@ router.get('/google', (req, res) => {
   res.redirect(authUrl);
 });
 
-router.get('/google/callback', async (req, res) => {
-  const code = req.query.code;
-  const userId = req.query.state;
+router.get("/google/callback", async (req, res) => {
+  const { code } = req.query;
   try {
-    const { tokens } = await oauth2Client.getToken(code);
-    console.log("Tokens received:", tokens);
-    await User.updateOne({ _id: userId }, { $set: { googleTokens: tokens } });
-    req.session.googleTokens = tokens;
-    res.redirect("http://localhost:5173/calendar"); // Matches frontend route
+    // Exchange authorization code for tokens
+    const { tokens } = await client.getToken(code);
+
+    // Verify the id_token to extract user info (including email)
+    const ticket = await client.verifyIdToken({
+      idToken: tokens.id_token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    const email = payload.email;
+    const name = payload.name; // Optional: extract name if available
+
+    // Find or create user
+    let user = await User.findOne({ email });
+    if (!user) {
+      user = new User({
+        email,
+        name: name || email.split("@")[0], // Fallback to email prefix if no name
+        // Add other fields as needed (e.g., password if local auth is also used)
+      });
+      await user.save();
+    }
+
+    // Set session and redirect
+    req.session.userId = user._id.toString();
+    res.redirect("/chat"); // Redirect to chat page or your desired route
   } catch (error) {
-    console.error("Google OAuth callback error:", error);
-    res.status(500).send("Google authentication failed");
+    console.error("Error in Google OAuth callback:", error);
+    res.status(500).json({ error: "Error authenticating with Google" });
   }
 });
 

@@ -1,7 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { FaEdit, FaTrash } from "react-icons/fa";
+import { io } from "socket.io-client";
+import SimplePeer from "simple-peer";
+import { Buffer } from "buffer";
+import { Button, TextField, Typography } from "@mui/material";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./TeamGoalPage.css";
+
+// Polyfill Buffer globally
+window.Buffer = Buffer;
 
 const TeamGoalPage = () => {
   const [view, setView] = useState("main");
@@ -18,13 +27,127 @@ const TeamGoalPage = () => {
   const [userId] = useState(localStorage.getItem("userId") || "");
   const [username] = useState(localStorage.getItem("username") || "");
   const [loading, setLoading] = useState(false);
+  const [meetingId, setMeetingId] = useState("");
+  const [isMeetingActive, setIsMeetingActive] = useState(false);
+  const [peers, setPeers] = useState({});
+  const [myStream, setMyStream] = useState(null);
+  const [participants, setParticipants] = useState([]);
+  const [mediaError, setMediaError] = useState(null); // Track media access errors
+  const socketRef = useRef();
+  const peersRef = useRef({});
+  const streamRef = useRef(null);
+  const mediaAccessRequested = useRef(false); // Prevent multiple media requests
 
   const API_URL = "http://localhost:3000/team-goals";
+
+  const stopMediaStream = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+      setMyStream(null);
+      mediaAccessRequested.current = false;
+    }
+  };
+
+  const requestMediaAccess = async () => {
+    if (mediaAccessRequested.current || streamRef.current) return; // Avoid multiple requests
+    mediaAccessRequested.current = true;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      streamRef.current = stream;
+      setMyStream(stream);
+      setMediaError(null);
+    } catch (err) {
+      console.error("Media access error:", err);
+      setMediaError(err.name);
+      toast.error(
+        "Failed to access camera/microphone. Ensure no other app is using them or retry.",
+        { autoClose: false }
+      );
+      mediaAccessRequested.current = false;
+    }
+  };
 
   useEffect(() => {
     fetchGoals();
     fetchUsers();
+    initializeSocket();
+
+    // Cleanup on unmount
+    return () => {
+      stopMediaStream();
+      socketRef.current?.disconnect();
+    };
   }, []);
+
+  const initializeSocket = () => {
+    socketRef.current = io("http://localhost:3000", { withCredentials: true });
+
+    socketRef.current.on("connect", () => console.log("Connected to Socket.IO"));
+    socketRef.current.on("connect_error", (error) => console.error("Connection error:", error.message));
+    socketRef.current.emit("authenticate", userId);
+
+    socketRef.current.on("updateUserList", (userList) => {
+      // Optionally use for member presence
+    });
+
+    socketRef.current.on("meetingStarted", (data) => {
+      if (data.goalId === selectedGoal?.taskId) {
+        setMeetingId(data.meetingId);
+        toast.info(`Meeting ${data.meetingId} started by ${data.leaderName} for goal ${data.goalId}`);
+      }
+    });
+
+    socketRef.current.on("userJoinedMeeting", (data) => {
+      if (isMeetingActive && data.userId !== userId && selectedGoal?.taskId === data.goalId) {
+        createPeer(data.userId, socketRef.current.id, data.socketId);
+      }
+    });
+
+    socketRef.current.on("updateParticipants", (participantsList) => {
+      setParticipants(participantsList);
+    });
+
+    socketRef.current.on("userDisconnected", (data) => {
+      if (peers[data.userId]) {
+        peers[data.userId].peer.destroy();
+        const newPeers = { ...peers };
+        delete newPeers[data.userId];
+        setPeers(newPeers);
+      }
+    });
+
+    socketRef.current.on("signal", (data) => {
+      if (peers[data.from]) {
+        peers[data.from].peer.signal(data.signal);
+      } else {
+        createPeer(data.from, socketRef.current.id, null, data.signal);
+      }
+    });
+  };
+
+  const createPeer = (userId, callerId, recipientId, signal) => {
+    const peer = new SimplePeer({
+      initiator: callerId === socketRef.current.id,
+      trickle: false,
+      stream: streamRef.current,
+    });
+
+    if (signal) peer.signal(signal);
+
+    peer.on("signal", (signal) => {
+      socketRef.current.emit("signal", { to: recipientId || null, signal });
+    });
+
+    peer.on("stream", (stream) => {
+      setPeers((prev) => ({ ...prev, [userId]: { peer, stream } }));
+    });
+
+    peer.on("error", (err) => console.error("Peer error:", err));
+
+    peersRef.current[userId] = peer;
+    setPeers((prev) => ({ ...prev, [userId]: { peer } }));
+  };
 
   const fetchGoals = async () => {
     setLoading(true);
@@ -51,8 +174,8 @@ const TeamGoalPage = () => {
     if (!title || !description || !dueDate) return;
     setLoading(true);
     try {
-      const enrichedMembers = members.map(member => {
-        const user = allUsers.find(u => u._id === member.memberId);
+      const enrichedMembers = members.map((member) => {
+        const user = allUsers.find((u) => u._id === member.memberId);
         return {
           memberId: member.memberId,
           task: member.task,
@@ -80,28 +203,12 @@ const TeamGoalPage = () => {
     }
   };
 
-  const handleJoinGoal = async () => {
-    if (!taskId) return;
-    setLoading(true);
-    try {
-      const response = await axios.post(`${API_URL}/join`, { taskId, userId });
-      setSelectedGoal(response.data);
-      setView("dashboard");
-      fetchGoals();
-      setTaskId("");
-      setLoading(false);
-    } catch (error) {
-      console.error("Error joining goal:", error);
-      setLoading(false);
-    }
-  };
-
   const handleAddMember = async () => {
     if (!selectedGoal) return;
     setLoading(true);
     try {
-      const enrichedMembers = members.map(member => {
-        const user = allUsers.find(u => u._id === member.memberId);
+      const enrichedMembers = members.map((member) => {
+        const user = allUsers.find((u) => u._id === member.memberId);
         return {
           memberId: member.memberId,
           task: member.task,
@@ -110,46 +217,32 @@ const TeamGoalPage = () => {
       });
 
       const memberUrl = `${API_URL}/${selectedGoal.taskId}/members`;
-      console.log("Adding member to URL:", memberUrl);
-      console.log("Payload:", { members: enrichedMembers });
       await axios.put(memberUrl, { members: enrichedMembers });
       const response = await axios.get(`${API_URL}/${selectedGoal.taskId}`);
-      console.log("Updated goal:", response.data);
       setSelectedGoal(response.data);
       setMembers([{ memberId: "", task: "" }]);
       setLoading(false);
     } catch (error) {
       console.error("Error adding member:", error);
-      if (error.response) {
-        console.log("Response data:", error.response.data);
-        console.log("Response status:", error.response.status);
-      }
       setLoading(false);
     }
   };
 
-  const handleAddComment = async () => {
-    if (!comment || !selectedGoal) return;
+  const handleAddComment = async (content) => {
+    if (!content || !selectedGoal) return;
     setLoading(true);
     try {
       const commentUrl = `${API_URL}/${selectedGoal.taskId}/comments`;
-      console.log("Adding comment to URL:", commentUrl);
-      console.log("Payload:", { userId, username, content: comment });
       const response = await axios.post(commentUrl, {
         userId,
         username,
-        content: comment,
+        content,
       });
-      console.log("Post response:", response.data);
       setSelectedGoal({ ...response.data });
       setComment("");
       setLoading(false);
     } catch (error) {
       console.error("Error adding comment:", error);
-      if (error.response) {
-        console.log("Response data:", error.response.data);
-        console.log("Response status:", error.response.status);
-      }
       setLoading(false);
     }
   };
@@ -172,18 +265,12 @@ const TeamGoalPage = () => {
   const handleDeleteComment = async (commentId) => {
     setLoading(true);
     try {
-      const deleteUrl = `${API_URL}/${selectedGoal.taskId}/comments/${commentId}`;
-      console.log("Deleting comment at URL:", deleteUrl);
-      const response = await axios.delete(deleteUrl);
-      console.log("Delete response:", response.data);
-      setSelectedGoal({ ...response.data }); // Update state with returned goal
+      await axios.delete(`${API_URL}/${selectedGoal.taskId}/comments/${commentId}`);
+      const response = await axios.get(`${API_URL}/${selectedGoal.taskId}`);
+      setSelectedGoal({ ...response.data });
       setLoading(false);
     } catch (error) {
       console.error("Error deleting comment:", error);
-      if (error.response) {
-        console.log("Response data:", error.response.data);
-        console.log("Response status:", error.response.status);
-      }
       setLoading(false);
     }
   };
@@ -198,8 +285,62 @@ const TeamGoalPage = () => {
 
   const isLeader = selectedGoal?.leaderId === userId;
 
+  const startMeeting = async () => {
+    if (!userId || !selectedGoal) return toast.error("Please select a goal to start a meeting");
+
+    // Request media access before starting the meeting
+    await requestMediaAccess();
+    if (!streamRef.current) return; // Stop if media access failed
+
+    const newMeetingId = `meeting_${Date.now()}_${selectedGoal.taskId}`;
+    setMeetingId(newMeetingId);
+    setIsMeetingActive(true);
+    socketRef.current.emit("initiateMeeting", {
+      leaderId: userId,
+      meetingId: newMeetingId,
+      goalId: selectedGoal.taskId,
+    });
+
+    const meetingComment = `Meeting started! Join with Meeting ID: ${newMeetingId}`;
+    await handleAddComment(meetingComment);
+
+    setView("meeting");
+    toast.success(`Meeting ${newMeetingId} started for goal ${selectedGoal.title}`);
+  };
+
+  const joinMeeting = async () => {
+    if (!meetingId || !selectedGoal) return toast.warn("Please enter a meeting ID and select a goal");
+
+    // Request media access before joining the meeting
+    await requestMediaAccess();
+    if (!streamRef.current) return; // Stop if media access failed
+
+    socketRef.current.emit("joinMeeting", { meetingId, userId, goalId: selectedGoal.taskId });
+    setIsMeetingActive(true);
+    setView("meeting");
+    toast.info(`Joined meeting ${meetingId} for goal ${selectedGoal.title}`);
+  };
+
+  const leaveMeeting = () => {
+    setIsMeetingActive(false);
+    setMeetingId("");
+    Object.values(peers).forEach(({ peer }) => peer.destroy());
+    setPeers({});
+    setParticipants([]);
+    socketRef.current.emit("leaveMeeting", { meetingId, userId });
+    stopMediaStream(); // Stop the media stream when leaving
+    setView("dashboard");
+    toast.info("Left the meeting");
+  };
+
+  const retryMediaAccess = async () => {
+    stopMediaStream(); // Stop any existing stream
+    await requestMediaAccess();
+  };
+
   return (
     <div className="team-goal-container">
+      <ToastContainer position="top-right" autoClose={3000} />
       {loading && (
         <div className="team-goal-loader-container">
           <img
@@ -216,24 +357,9 @@ const TeamGoalPage = () => {
             <div className="team-goal-main">
               <h2 className="team-goal-heading">Team Goals</h2>
               <div className="team-goal-options">
-                <button
-                  className="team-goal-btn"
-                  onClick={() => setView("create")}
-                >
+                <button className="team-goal-btn" onClick={() => setView("create")}>
                   Create a Goal
                 </button>
-                {/* <div className="join-goal-section">
-                  <input
-                    type="text"
-                    placeholder="Enter Task ID"
-                    value={taskId}
-                    onChange={(e) => setTaskId(e.target.value)}
-                    className="team-goal-input"
-                  />
-                  <button className="team-goal-btn" onClick={handleJoinGoal}>
-                    Join a Goal
-                  </button>
-                </div> */}
               </div>
               <div className="team-goal-list">
                 {goals.map((goal) => (
@@ -333,7 +459,6 @@ const TeamGoalPage = () => {
 
           {view === "dashboard" && selectedGoal && (
             <div className="team-goal-dashboard">
-              {console.log("Selected Goal:", selectedGoal)}
               <div className="team-goal-info">
                 <h2 className="team-goal-heading">Task ID: {selectedGoal.taskId}</h2>
                 <p><strong>Title:</strong> {selectedGoal.title}</p>
@@ -389,6 +514,27 @@ const TeamGoalPage = () => {
                     </div>
                   )}
                 </div>
+                <div className="team-goal-meeting">
+                  <Typography variant="h6">Meeting</Typography>
+                  {isLeader ? (
+                    <Button variant="contained" onClick={startMeeting} style={{ margin: "10px 0" }}>
+                      Start Meeting
+                    </Button>
+                  ) : (
+                    <>
+                      <TextField
+                        label="Meeting ID"
+                        value={meetingId}
+                        onChange={(e) => setMeetingId(e.target.value)}
+                        fullWidth
+                        style={{ margin: "10px 0" }}
+                      />
+                      <Button variant="contained" onClick={joinMeeting} style={{ margin: "10px 0" }}>
+                        Join Meeting
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
               <div className="team-goal-comments">
                 <h3>Comments</h3>
@@ -422,13 +568,66 @@ const TeamGoalPage = () => {
                   onChange={(e) => setComment(e.target.value)}
                   className="team-goal-comment-input"
                 />
-                <button
-                  className="team-goal-comment-btn"
-                  onClick={handleAddComment}
-                >
+                <button className="team-goal-comment-btn" onClick={() => handleAddComment(comment)}>
                   Add Comment
                 </button>
               </div>
+            </div>
+          )}
+
+          {view === "meeting" && selectedGoal && (
+            <div className="team-goal-meeting-view">
+              <Typography variant="h5">Meeting for Goal: {selectedGoal.title}</Typography>
+              <Typography variant="subtitle1">Meeting ID: {meetingId}</Typography>
+              {mediaError && (
+                <div style={{ margin: "10px 0", color: "red" }}>
+                  <Typography variant="body1">Media access error: {mediaError}</Typography>
+                  <Button variant="outlined" onClick={retryMediaAccess} style={{ marginTop: "10px" }}>
+                    Retry Media Access
+                  </Button>
+                </div>
+              )}
+              <Typography variant="h6" style={{ marginTop: "10px" }}>
+                Participants ({participants.length}):
+              </Typography>
+              <div className="video-container">
+                {streamRef.current && !mediaError && (
+                  <div className="video-wrapper" key={`${userId}-local-${Date.now()}`}>
+                    <Typography variant="body2" style={{ textAlign: "center" }}>
+                      {username} (You{isLeader ? ", Leader" : ""})
+                    </Typography>
+                    <video
+                      ref={(video) => {
+                        if (video && streamRef.current) video.srcObject = streamRef.current;
+                      }}
+                      autoPlay
+                      muted
+                      style={{ width: "300px", height: "200px", backgroundColor: "black" }}
+                    />
+                  </div>
+                )}
+                {Object.entries(peers).map(([peerUserId, { stream }], index) => {
+                  const participant = participants.find((p) => p.userId === peerUserId);
+                  if (!participant || !stream) return null;
+                  return (
+                    <div key={`${peerUserId}-${index}-${Date.now()}`} className="video-wrapper">
+                      <Typography variant="body2" style={{ textAlign: "center" }}>
+                        {participant.userName} {participant.isLeader ? "(Leader)" : ""}
+                      </Typography>
+                      <video
+                        ref={(video) => {
+                          if (video && stream) video.srcObject = stream;
+                        }}
+                        autoPlay
+                        style={{ width: "300px", height: "200px", backgroundColor: "black" }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+              <Button variant="contained" onClick={leaveMeeting} color="error" style={{ marginTop: "20px" }}>
+                Leave Meeting
+              </Button>
             </div>
           )}
         </>
