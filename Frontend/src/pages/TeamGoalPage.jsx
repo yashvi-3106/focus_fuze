@@ -38,7 +38,7 @@ const TeamGoalPage = () => {
   const streamRef = useRef(null);
   const mediaAccessRequested = useRef(false); // Prevent multiple media requests
 
-  const API_URL = "http://localhost:3000/team-goals";
+  const API_URL = "https://focus-fuze.onrender.com/team-goals";
 
   const stopMediaStream = () => {
     if (streamRef.current) {
@@ -81,7 +81,7 @@ const TeamGoalPage = () => {
   }, []);
 
   const initializeSocket = () => {
-    socketRef.current = io("http://localhost:3000", { withCredentials: true });
+    socketRef.current = io("https://focus-fuze.onrender.com", { withCredentials: true });
 
     socketRef.current.on("connect", () => console.log("Connected to Socket.IO"));
     socketRef.current.on("connect_error", (error) => console.error("Connection error:", error.message));

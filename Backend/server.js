@@ -25,6 +25,7 @@ const io = new Server(server, {
       "http://localhost:5173",
       "http://localhost:5176",
       "https://focuss-fuze.netlify.app",
+      "https://focus-fuze.onrender.com",
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
@@ -44,6 +45,7 @@ const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5176",
   "https://focuss-fuze.netlify.app",
+  "https://focus-fuze.onrender.com",
 ];
 
 const corsOptions = {
