@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./PersonalGoal.css";
+import { TiTick } from "react-icons/ti";
+
 
 const PersonalGoal = () => {
   const [goals, setGoals] = useState([]);
@@ -102,6 +104,35 @@ const PersonalGoal = () => {
     setEditingGoal(goal._id);
     setNewGoal({ ...goal });
   };
+
+  const markAsComplete = async (goalId) => {
+    try {
+      const response = await fetch(`http://localhost:3000/personal-goals/${goalId}/complete`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "Completed" }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update goal");
+      }
+
+      const updatedGoal = await response.json();
+
+      // Update the goals state with the full updated goal from the backend
+      setGoals((prevGoals) =>
+        prevGoals.map((goal) =>
+          goal._id === goalId ? updatedGoal : goal
+        )
+      );
+
+      toast.success("Goal marked as complete!");
+    } catch (error) {
+      console.error("Error updating goal:", error);
+      toast.error("Failed to mark goal as complete.");
+    }
+  };
+
 
   const updateGoal = async () => {
     if (!editingGoal) return;
@@ -283,6 +314,23 @@ const PersonalGoal = () => {
                 >
                   <FaEdit /> Edit
                 </button>
+
+                <button
+                  onClick={() => markAsComplete(goal._id)}
+                  className={`action-btn ${goal.status === "Completed" ? "disabled-btn" : "completed-btn"}`}
+                  disabled={goal.status === "Completed"}
+                >
+                  {goal.status === "Completed" ? (
+                    <>
+                      <TiTick /> Task Completed
+                    </>
+                  ) : (
+                    <>
+                      <TiTick /> Mark as Complete
+                    </>
+                  )}
+                </button>
+
                 <button
                   onClick={() => deleteGoal(goal._id)}
                   className="action-btn delete-btn"

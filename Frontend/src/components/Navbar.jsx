@@ -35,12 +35,17 @@ const Navbar = () => {
 
         <Link to="/personal-goals" className="link">PersonalGoals</Link>
         <Link to="/team-goals" className="link">TeamGoal</Link>
+
         <Link to="/notes" className="link">Notes</Link>
         <Link to="/calendar" className="link">Calendar</Link>
         <Link to="/save-video" className="link">NoteTube</Link>
         <Link to="/chat" className="link">Chat</Link>
         <Link to="/profile" className="link">Profile</Link>
     
+
+        <Link to="/dashboard" className="link">Dashboard</Link>
+      </div>
+
 
         
       </div>

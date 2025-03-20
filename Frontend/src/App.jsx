@@ -13,8 +13,12 @@ import Auth from "./pages/Auth";
 import SaveVideo from "./pages/SaveVideo";
 import VideoNote from "./pages/VideoNote";
 import TeamGoalPage from "./pages/TeamGoalPage";
+
 import Profile from "./pages/Profile";
 import ErrorBoundary from "./pages/ErrorBoundary";
+
+import Dashboard from "./pages/Dashboard";
+
 
 // In index.js or App.jsx
 import axios from "axios";
@@ -61,7 +65,11 @@ const MainContent = () => {
         {/* <Route path="/contact" element={<Contact />} /> */}
         <Route path="/video/:videoId" element={<VideoNote />} />
         <Route path="/team-goals" element={<TeamGoalPage />} />
+
         <Route path="/profile" element={<Profile />} />
+
+        <Route path="/dashboard" element={<Dashboard />} />
+
       </Routes>
     </div>
   );
