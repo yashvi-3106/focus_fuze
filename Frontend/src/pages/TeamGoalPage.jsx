@@ -1,15 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { FaEdit, FaTrash } from "react-icons/fa";
-import { io } from "socket.io-client";
-import SimplePeer from "simple-peer";
-import { Buffer } from "buffer";
 import { Button, TextField, Typography } from "@mui/material";
 import { toast } from "react-toastify";
+import { JitsiMeeting } from "@jitsi/react-sdk";
 import "./TeamGoalPage.css";
-
-// Polyfill Buffer globally
-window.Buffer = Buffer;
 
 const TeamGoalPage = () => {
   const [view, setView] = useState("main");
@@ -26,239 +21,37 @@ const TeamGoalPage = () => {
   const [userId] = useState(localStorage.getItem("userId") || "");
   const [username] = useState(localStorage.getItem("username") || "");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [meetingId, setMeetingId] = useState("");
   const [isMeetingActive, setIsMeetingActive] = useState(false);
-  const [peers, setPeers] = useState({});
-  const [myStream, setMyStream] = useState(null);
-  const [participants, setParticipants] = useState([]);
-  const [mediaError, setMediaError] = useState(null);
-  const socketRef = useRef();
-  const peersRef = useRef({});
-  const streamRef = useRef(null);
-  const mediaAccessRequested = useRef(false);
 
-  const API_URL = "https://focus-fuze.onrender.com/team-goals";
-  const SOCKET_URL = "https://focus-fuze.onrender.com";
-
-  const stopMediaStream = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
-      setMyStream(null);
-      mediaAccessRequested.current = false;
-    }
-  };
-
-  const requestMediaAccess = async () => {
-    if (mediaAccessRequested.current || streamRef.current) return;
-    mediaAccessRequested.current = true;
-    try {
-      const canvas = document.createElement("canvas");
-      canvas.width = 640;
-      canvas.height = 480;
-      const ctx = canvas.getContext("2d");
-      ctx.fillStyle = "black";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "white";
-      ctx.font = "30px Arial";
-      ctx.textAlign = "center";
-      ctx.fillText(username || "Unknown User", canvas.width / 2, canvas.height / 2);
-      const stream = canvas.captureStream(30);
-      streamRef.current = stream;
-      setMyStream(stream);
-      setMediaError(null);
-      console.log("Fake stream created for user:", username);
-    } catch (err) {
-      console.error("Fake stream error:", err);
-      setMediaError(err.name);
-      toast.error("Failed to create fake stream. Please try again.", { autoClose: false });
-      mediaAccessRequested.current = false;
-    }
-  };
+  const API_URL = "http://localhost:3000/team-goals";
 
   useEffect(() => {
-    fetchGoals();
-    fetchUsers();
-    initializeSocket();
-
-    return () => {
-      stopMediaStream();
-      socketRef.current?.disconnect();
-    };
-  }, []);
-
-  const initializeSocket = () => {
-    socketRef.current = io(SOCKET_URL, {
-      withCredentials: true,
-      path: "/socket.io",
-      transports: ["polling", "websocket"],
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-    });
-
-    socketRef.current.on("connect", () => {
-      console.log("Connected to Socket.IO", socketRef.current.id);
-      socketRef.current.emit("authenticate", { userId, userName: username });
-    });
-
-    socketRef.current.on("connect_error", (error) => {
-      console.error("Socket.IO connection error:", error.message);
-      toast.error("Failed to connect to real-time server. Check your network or retry.");
-    });
-
-    socketRef.current.on("updateUserList", (userList) => {
-      console.log("Updated user list:", userList);
-    });
-
-    socketRef.current.on("meetingStarted", (data) => {
-      console.log("Meeting started event received:", data);
-      if (data.goalId === selectedGoal?.taskId) {
-        setMeetingId(data.meetingId);
-        toast.info(`Meeting ${data.meetingId} started by ${data.leaderName} for goal ${data.goalId}`);
-      }
-    });
-
-    socketRef.current.on("userJoinedMeeting", (data) => {
-      console.log("User joined meeting event received:", data);
-      if (data.userId !== userId && selectedGoal?.taskId === data.goalId) {
-        console.log(`User ${data.userId} joined meeting ${meetingId}, initiating peer connection`);
-        if (streamRef.current) {
-          createPeer(data.userId, socketRef.current.id, data.socketId, false);
-        } else {
-          console.warn("No stream available to initiate peer connection with", data.userId);
-        }
-      } else {
-        console.log("Skipping peer connection initiation:", { userId, dataUserId: data.userId, goalId: selectedGoal?.taskId, dataGoalId: data.goalId });
-      }
-    });
-
-    socketRef.current.on("updateParticipants", (participantsList) => {
-      console.log("Update participants event received:", participantsList);
-      setParticipants(participantsList);
-
-      participantsList.forEach((participant) => {
-        if (participant.userId !== userId && !peers[participant.userId] && participant.socketId) {
-          console.log(`Initiating peer connection with ${participant.userId} (${participant.socketId})`);
-          if (streamRef.current) {
-            createPeer(participant.userId, socketRef.current.id, participant.socketId, false);
-          } else {
-            console.warn("No stream available to initiate peer connection with", participant.userId);
-          }
-        } else {
-          console.log("Skipping peer connection for participant:", participant);
-        }
-      });
-    });
-
-    socketRef.current.on("userDisconnected", (data) => {
-      console.log("User disconnected event received:", data);
-      if (peers[data.userId]) {
-        console.log(`User ${data.userId} disconnected, cleaning up peer`);
-        peers[data.userId].peer.destroy();
-        const newPeers = { ...peers };
-        delete newPeers[data.userId];
-        setPeers(newPeers);
-      }
-    });
-
-    socketRef.current.on("signal", (data) => {
-      console.log("Signal event received:", data);
-      if (peers[data.from]) {
-        console.log(`Signaling existing peer for ${data.from}`);
-        peers[data.from].peer.signal(data.signal);
-      } else {
-        console.log(`Creating new peer for ${data.from} due to incoming signal`);
-        createPeer(data.from, socketRef.current.id, data.from, true, data.signal);
-      }
-    });
-  };
-
-  const createPeer = (userId, callerId, recipientId, initiator, signalData) => {
-    console.log(
-      `Creating peer for ${userId}, initiator: ${initiator}, caller: ${callerId}, recipient: ${recipientId}`
-    );
-    if (!streamRef.current) {
-      console.warn("No local stream available to create peer for", userId);
+    if (!userId) {
+      setError("Please log in to access team goals");
       return;
     }
-
-    const peer = new SimplePeer({
-      initiator,
-      trickle: true, // Enable trickle ICE
-      stream: streamRef.current,
-      config: {
-        iceServers: [
-          { urls: "stun:stun.l.google.com:19302" },
-          // Add TURN server if needed
-        ],
-      },
-    });
-
-    console.log("Stream added to peer:", streamRef.current);
-
-    let retryCount = 0;
-    const maxRetries = 3;
-
-    if (signalData) {
-      console.log("Signaling peer with initial signal:", signalData);
-      peer.signal(signalData);
-    }
-
-    peer.on("signal", (signal) => {
-      console.log(`Sending signal from ${callerId} to ${recipientId}:`, signal);
-      socketRef.current.emit("signal", { to: recipientId, signal, from: callerId });
-    });
-
-    peer.on("stream", (stream) => {
-      console.log(`Received stream from ${userId}`);
-      setPeers((prev) => {
-        const updatedPeers = { ...prev, [userId]: { peer, stream } };
-        console.log("Updated peers:", updatedPeers);
-        return updatedPeers;
-      });
-    });
-
-    peer.on("connect", () => {
-      console.log(`Peer connection established with ${userId}`);
-    });
-
-    peer.on("error", (err) => {
-      console.error("Peer error for", userId, ":", err);
-      if (retryCount < maxRetries) {
-        retryCount++;
-        console.log(`Retrying peer connection for ${userId}, attempt ${retryCount}`);
-        createPeer(userId, callerId, recipientId, initiator, signalData);
-      } else {
-        toast.error(`Failed to connect to ${userId}'s stream after ${maxRetries} attempts.`);
-      }
-    });
-
-    peer.on("close", () => {
-      console.log(`Peer connection closed with ${userId}`);
-    });
-
-    peersRef.current[userId] = peer;
-    setPeers((prev) => {
-      const updatedPeers = { ...prev, [userId]: { peer } };
-      console.log("Initial peer setup:", updatedPeers);
-      return updatedPeers;
-    });
-  };
+    fetchGoals();
+    fetchUsers();
+  }, [userId]);
 
   const fetchGoals = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const response = await axios.get(API_URL, { params: { userId } });
+      const response = await axios.get(API_URL, { params: { userId }, withCredentials: true });
       if (Array.isArray(response.data)) {
         setGoals(response.data);
       } else {
         console.error("Expected an array for goals, received:", response.data);
         setGoals([]);
+        setError("Invalid response format for goals");
       }
     } catch (error) {
       console.error("Error fetching goals:", error);
       setGoals([]);
+      setError("Failed to fetch goals. Please try again.");
       toast.error("Failed to fetch goals. Please try again.");
     } finally {
       setLoading(false);
@@ -267,23 +60,29 @@ const TeamGoalPage = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get(`${API_URL}/users`);
+      const response = await axios.get(`${API_URL}/users`, { withCredentials: true });
       if (Array.isArray(response.data)) {
         setAllUsers(response.data);
       } else {
         console.error("Expected an array for users, received:", response.data);
         setAllUsers([]);
+        setError("Invalid response format for users");
       }
     } catch (error) {
       console.error("Error fetching users:", error);
       setAllUsers([]);
+      setError("Failed to fetch users. Please try again.");
       toast.error("Failed to fetch users. Please try again.");
     }
   };
 
   const handleCreateGoal = async () => {
-    if (!title || !description || !dueDate) return;
+    if (!title || !description || !dueDate) {
+      toast.warn("Please fill in all required fields");
+      return;
+    }
     setLoading(true);
+    setError(null);
     try {
       const enrichedMembers = members.map((member) => {
         const user = allUsers.find((u) => u._id === member.memberId);
@@ -294,30 +93,36 @@ const TeamGoalPage = () => {
         };
       });
 
-      const response = await axios.post(API_URL, {
-        leaderId: userId,
-        title,
-        description,
-        priority,
-        dueDate,
-        members: enrichedMembers,
-      });
+      const response = await axios.post(
+        API_URL,
+        {
+          leaderId: userId,
+          title,
+          description,
+          priority,
+          dueDate,
+          members: enrichedMembers,
+        },
+        { withCredentials: true }
+      );
       setTaskId(response.data.taskId);
       setView("dashboard");
       setSelectedGoal(response.data);
       fetchGoals();
       resetForm();
-      setLoading(false);
     } catch (error) {
       console.error("Error creating goal:", error);
-      setLoading(false);
+      setError("Failed to create goal. Please try again.");
       toast.error("Failed to create goal. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleAddMember = async () => {
     if (!selectedGoal) return;
     setLoading(true);
+    setError(null);
     try {
       const enrichedMembers = members.map((member) => {
         const user = allUsers.find((u) => u._id === member.memberId);
@@ -329,65 +134,78 @@ const TeamGoalPage = () => {
       });
 
       const memberUrl = `${API_URL}/${selectedGoal.taskId}/members`;
-      await axios.put(memberUrl, { members: enrichedMembers });
-      const response = await axios.get(`${API_URL}/${selectedGoal.taskId}`);
+      await axios.put(memberUrl, { members: enrichedMembers }, { withCredentials: true });
+      const response = await axios.get(`${API_URL}/${selectedGoal.taskId}`, { withCredentials: true });
       setSelectedGoal(response.data);
       setMembers([{ memberId: "", task: "" }]);
-      setLoading(false);
     } catch (error) {
       console.error("Error adding member:", error);
-      setLoading(false);
+      setError("Failed to add member. Please try again.");
       toast.error("Failed to add member. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleAddComment = async (content) => {
     if (!content || !selectedGoal) return;
     setLoading(true);
+    setError(null);
     try {
       const commentUrl = `${API_URL}/${selectedGoal.taskId}/comments`;
-      const response = await axios.post(commentUrl, {
-        userId,
-        username,
-        content,
-      });
+      const response = await axios.post(
+        commentUrl,
+        {
+          userId,
+          username,
+          content,
+        },
+        { withCredentials: true }
+      );
       setSelectedGoal({ ...response.data });
       setComment("");
-      setLoading(false);
     } catch (error) {
       console.error("Error adding comment:", error);
-      setLoading(false);
+      setError("Failed to add comment. Please try again.");
       toast.error("Failed to add comment. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleEditComment = async (commentId, newContent) => {
     setLoading(true);
+    setError(null);
     try {
-      await axios.put(`${API_URL}/${selectedGoal.taskId}/comments/${commentId}`, {
-        content: newContent,
-      });
-      const response = await axios.get(`${API_URL}/${selectedGoal.taskId}`);
+      await axios.put(
+        `${API_URL}/${selectedGoal.taskId}/comments/${commentId}`,
+        { content: newContent },
+        { withCredentials: true }
+      );
+      const response = await axios.get(`${API_URL}/${selectedGoal.taskId}`, { withCredentials: true });
       setSelectedGoal(response.data);
-      setLoading(false);
     } catch (error) {
       console.error("Error editing comment:", error);
-      setLoading(false);
+      setError("Failed to edit comment. Please try again.");
       toast.error("Failed to edit comment. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDeleteComment = async (commentId) => {
     setLoading(true);
+    setError(null);
     try {
-      await axios.delete(`${API_URL}/${selectedGoal.taskId}/comments/${commentId}`);
-      const response = await axios.get(`${API_URL}/${selectedGoal.taskId}`);
+      await axios.delete(`${API_URL}/${selectedGoal.taskId}/comments/${commentId}`, { withCredentials: true });
+      const response = await axios.get(`${API_URL}/${selectedGoal.taskId}`, { withCredentials: true });
       setSelectedGoal({ ...response.data });
-      setLoading(false);
     } catch (error) {
       console.error("Error deleting comment:", error);
-      setLoading(false);
+      setError("Failed to delete comment. Please try again.");
       toast.error("Failed to delete comment. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -402,23 +220,14 @@ const TeamGoalPage = () => {
   const isLeader = selectedGoal?.leaderId === userId;
 
   const startMeeting = async () => {
-    if (!userId || !selectedGoal) return toast.error("Please select a goal to start a meeting");
-
-    await requestMediaAccess();
-    if (!streamRef.current) {
-      toast.error("Cannot start meeting without media access.");
+    if (!userId || !selectedGoal) {
+      toast.error("Please select a goal to start a meeting");
       return;
     }
 
-    const newMeetingId = `meeting_${Date.now()}_${selectedGoal.taskId}`;
+    const newMeetingId = `FocusFuze_${selectedGoal.taskId}_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
     setMeetingId(newMeetingId);
     setIsMeetingActive(true);
-    socketRef.current.emit("initiateMeeting", {
-      leaderId: userId,
-      leaderName: username,
-      meetingId: newMeetingId,
-      goalId: selectedGoal.taskId,
-    });
 
     const meetingComment = `Meeting started! Join with Meeting ID: ${newMeetingId}`;
     await handleAddComment(meetingComment);
@@ -428,15 +237,11 @@ const TeamGoalPage = () => {
   };
 
   const joinMeeting = async () => {
-    if (!meetingId || !selectedGoal) return toast.warn("Please enter a meeting ID and select a goal");
-
-    await requestMediaAccess();
-    if (!streamRef.current) {
-      toast.error("Cannot join meeting without media access.");
+    if (!meetingId || !selectedGoal) {
+      toast.warn("Please enter a meeting ID and select a goal");
       return;
     }
 
-    socketRef.current.emit("joinMeeting", { meetingId, userId, userName: username, goalId: selectedGoal.taskId });
     setIsMeetingActive(true);
     setView("meeting");
     toast.info(`Joined meeting ${meetingId} for goal ${selectedGoal.title}`);
@@ -445,27 +250,8 @@ const TeamGoalPage = () => {
   const leaveMeeting = () => {
     setIsMeetingActive(false);
     setMeetingId("");
-    Object.values(peers).forEach(({ peer }) => peer.destroy());
-    setPeers({});
-    peersRef.current = {};
-    setParticipants([]);
-    socketRef.current.emit("leaveMeeting", { meetingId, userId });
-    stopMediaStream();
     setView("dashboard");
     toast.info("Left the meeting");
-  };
-
-  const retryMediaAccess = async () => {
-    stopMediaStream();
-    await requestMediaAccess();
-    if (streamRef.current && participants.length > 0) {
-      participants.forEach((participant) => {
-        if (participant.userId !== userId && !peers[participant.userId] && participant.socketId) {
-          console.log(`Re-initiating peer connection with ${participant.userId} (${participant.socketId})`);
-          createPeer(participant.userId, socketRef.current.id, participant.socketId, false);
-        }
-      });
-    }
   };
 
   return (
@@ -482,6 +268,8 @@ const TeamGoalPage = () => {
 
       {!loading && (
         <>
+          {error && <p className="error-message" style={{ color: "red", textAlign: "center" }}>{error}</p>}
+
           {view === "main" && (
             <div className="team-goal-main">
               <h2 className="team-goal-heading">Team Goals</h2>
@@ -712,79 +500,109 @@ const TeamGoalPage = () => {
             <div className="team-goal-meeting-view">
               <Typography variant="h5">Meeting for Goal: {selectedGoal.title}</Typography>
               <Typography variant="subtitle1">Meeting ID: {meetingId}</Typography>
-              {mediaError && (
-                <div style={{ margin: "10px 0", color: "red" }}>
-                  <Typography variant="body1">Media access error: {mediaError}</Typography>
-                  <Button variant="outlined" onClick={retryMediaAccess} style={{ marginTop: "10px" }}>
-                    Retry Media Access
-                  </Button>
-                </div>
-              )}
-              <Typography variant="h6" style={{ marginTop: "10px" }}>
-                Participants ({participants.length}):
-              </Typography>
-              <div className="video-container" style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
-                {myStream && !mediaError && (
-                  <div className="video-wrapper" key={`${userId}-local-${Date.now()}`}>
-                    <Typography variant="body2" style={{ textAlign: "center" }}>
-                      {username} (You{isLeader ? ", Leader" : ""})
-                    </Typography>
-                    <video
-                      ref={(video) => {
-                        if (video && myStream) {
-                          video.srcObject = myStream;
-                          video.play().catch((err) => console.error("Local video play error:", err));
-                        }
-                      }}
-                      autoPlay
-                      muted
-                      style={{ width: "300px", height: "200px", backgroundColor: "black", borderRadius: "8px" }}
-                    />
-                  </div>
-                )}
-
-                {Object.entries(peers).map(([peerUserId, peerData]) => {
-                  const participant = participants.find((p) => p.userId === peerUserId);
-                  if (!participant) {
-                    console.log(`Participant not found for peerUserId: ${peerUserId}`);
-                    return null;
-                  }
-
-                  console.log(`Rendering stream for ${peerUserId}:`, peerData);
-                  return (
-                    <div key={peerUserId} className="video-wrapper">
-                      <Typography variant="body2" style={{ textAlign: "center" }}>
-                        {participant.userName} {participant.isLeader ? "(Leader)" : ""}
-                      </Typography>
-                      {peerData.stream ? (
-                        <video
-                          ref={(video) => {
-                            if (video && peerData.stream) {
-                              video.srcObject = peerData.stream;
-                              video.play().catch((err) => console.error(`Video play error for ${peerUserId}:`, err));
-                            }
-                          }}
-                          autoPlay
-                          style={{ width: "300px", height: "200px", backgroundColor: "black", borderRadius: "8px" }}
-                        />
-                      ) : (
-                        <div
-                          style={{
-                            width: "300px",
-                            height: "200px",
-                            backgroundColor: "gray",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            borderRadius: "8px",
-                          }}
-                        >
-                          <Typography variant="body2">Waiting for stream...</Typography>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+              <div className="video-meeting-container">
+                <JitsiMeeting
+                  domain="jitsi.riot.im" // Use a different public server
+                  roomName={meetingId}
+                  configOverwrite={{
+                    disableThirdPartyRequests: true,
+                    startWithAudioMuted: true,
+                    startWithVideoMuted: true,
+                    prejoinPageEnabled: false,
+                    startWithoutVideo: true,
+                    enableWelcomePage: false,
+                    enableNoisyMicDetection: false,
+                    enableClosePage: false,
+                    disableInviteFunctions: false,
+                    requireDisplayName: true,
+                    disableDeepLinking: true,
+                    disableLocalVideoFlip: true,
+                    disableRemoteVideoMenu: false,
+                    disableProfile: true,
+                    disableSimulcast: false,
+                    enableLayerSuspension: true,
+                    disableModeratorIndicator: false,
+                    enableNoAudioDetection: true,
+                    enableAutomaticUrlCopy: false,
+                    disablePolls: true,
+                    disableReactions: true,
+                    disableSelfView: false,
+                    notifications: [],
+                    toolbarButtons: [
+                      "microphone",
+                      "camera",
+                      "closedcaptions",
+                      "desktop",
+                      "fullscreen",
+                      "fodeviceselection",
+                      "hangup",
+                      "chat",
+                      "recording",
+                      "livestreaming",
+                      "etherpad",
+                      "sharedvideo",
+                      "settings",
+                      "raisehand",
+                      "videoquality",
+                      "filmstrip",
+                      "feedback",
+                      "stats",
+                      "shortcuts",
+                      "tileview",
+                      "download",
+                      "help",
+                      "mute-everyone",
+                      "security",
+                    ],
+                  }}
+                  interfaceConfigOverwrite={{
+                    SHOW_JITSI_WATERMARK: false,
+                    SHOW_WATERMARK_FOR_GUESTS: false,
+                    DEFAULT_LOGO_URL: "",
+                    SHOW_BRAND_WATERMARK: false,
+                    SHOW_POWERED_BY: false,
+                  }}
+                  userInfo={{
+                    displayName: username || "Guest",
+                    email: "",
+                  }}
+                  getIFrameRef={(iframeRef) => {
+                    iframeRef.style.height = "500px";
+                    iframeRef.style.width = "100%";
+                    iframeRef.style.border = "none";
+                  }}
+                  onApiReady={(externalApi) => {
+                    console.log("Jitsi Meet API ready:", externalApi);
+                    externalApi.addEventListener("videoConferenceJoined", (event) => {
+                      console.log("User joined conference:", event);
+                    });
+                    externalApi.addEventListener("videoConferenceLeft", () => {
+                      console.log("User left conference");
+                      leaveMeeting();
+                    });
+                    externalApi.addEventListener("participantRoleChanged", (event) => {
+                      console.log("Participant role changed:", event);
+                    });
+                    externalApi.addEventListener("readyToClose", () => {
+                      console.log("Meeting is ready to close");
+                      leaveMeeting();
+                    });
+                    externalApi.addEventListener("errorOccurred", (event) => {
+                      console.error("Jitsi Meet error:", event);
+                      toast.error("An error occurred in the meeting. Please try again.");
+                    });
+                    externalApi.addEventListener("participantJoined", (event) => {
+                      console.log("Participant joined:", event);
+                    });
+                    externalApi.addEventListener("participantLeft", (event) => {
+                      console.log("Participant left:", event);
+                    });
+                    externalApi.addEventListener("authenticationRequired", () => {
+                      console.log("Authentication required for the meeting");
+                      toast.error("Authentication required. Please try starting a new meeting.");
+                    });
+                  }}
+                />
               </div>
               <Button variant="contained" onClick={leaveMeeting} color="error" style={{ marginTop: "20px" }}>
                 Leave Meeting
