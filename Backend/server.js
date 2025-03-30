@@ -6,6 +6,7 @@ const { connectToDatabase } = require('./db');
 
 const authenticationRoutes = require('./authentication');
 const personalGoalRoutes = require('./personalGoal');
+// console.log("✅ personalGoalRoutes routes:", personalGoalRoutes.stack.map(r => `${r.route.path} (${r.route.stack[0].method})`));
 const notesRoutes = require("./notes");
 const calendarRoutes = require("./calendar");
 const savedVideosRoutes = require("./SavedVideos");
@@ -62,13 +63,13 @@ app.use((req, res, next) => {
 
 app.use(session({
   secret: process.env.SESSION_SECRET || 'default_secret',
-  resave: false,
-  saveUninitialized: true,
+  resave: false, // Avoid resaving unchanged sessions
+  saveUninitialized: false, // Don’t create a session until something is stored
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === 'production', // false in development
     httpOnly: true,
     sameSite: 'Lax',
-    maxAge: 1000 * 60 * 60 * 24,
+    maxAge: 1000 * 60 * 60 * 24, // 1 day
   },
 }));
 

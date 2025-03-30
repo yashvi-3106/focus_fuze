@@ -270,6 +270,8 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./CalendarPage.css";
+axios.defaults.withCredentials = true;
+
 
 const CalendarPage = () => {
   const [events, setEvents] = useState([]);
@@ -302,7 +304,7 @@ const CalendarPage = () => {
   const fetchEvents = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API_URL}/${userId}`);
+      const response = await axios.get(`${API_URL}/${userId}`, { withCredentials: true });
       setEvents(
         response.data.map((event) => ({
           id: event._id,
@@ -331,41 +333,39 @@ const CalendarPage = () => {
       toast.warn("Please enter event title and date");
       return;
     }
-
+  
     setLoading(true);
     try {
-      const response = await axios.post(API_URL, {
-        userId,
-        title: newEvent.title,
-        date: newEvent.date.format("YYYY-MM-DD"),
-        description: newEvent.description,
-      });
+      const response = await axios.post(
+        API_URL,
+        {
+          userId,
+          title: newEvent.title,
+          date: newEvent.date.format("YYYY-MM-DD"),
+          description: newEvent.description,
+        },
+        { withCredentials: true }
+      );
       console.log("Event added successfully:", response.data);
-      fetchEvents(); // Refresh events immediately
+      fetchEvents();
       setNewEvent({ title: "", date: null, description: "" });
       toast.success("Event added successfully!");
     } catch (error) {
       console.error("Error adding event:", error);
-      if (error.response) {
-        console.error("Error response:", error.response.data);
-        toast.error(error.response.data.error || "Error adding event");
-      } else if (error.request) {
-        toast.error("No response from server. Please check if the backend is running.");
-      } else {
-        toast.error("Error adding event: " + error.message);
-      }
+      toast.error(error.response?.data?.error || "Error adding event");
     } finally {
       setTimeout(() => setLoading(false), 1000);
     }
   };
-
+  
+  // Delete event
   const handleEventClick = async (clickInfo) => {
     const eventId = clickInfo.event.id;
     toast.info("Click again to confirm deletion", {
       onClose: async () => {
         setLoading(true);
         try {
-          await axios.delete(`${API_URL}/${eventId}`);
+          await axios.delete(`${API_URL}/${eventId}`, { withCredentials: true });
           fetchEvents();
           toast.success("Event deleted successfully!");
         } catch (error) {

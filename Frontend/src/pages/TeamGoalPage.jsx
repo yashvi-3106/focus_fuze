@@ -272,8 +272,14 @@ const TeamGoalPage = () => {
 
           {view === "main" && (
             <div className="team-goal-main">
-              <h2 className="team-goal-heading">Team Goals</h2>
               <div className="team-goal-options">
+                <div className="team-goal-options-text">
+                  <h1>Welcome to Your Team Goals Dashboard!</h1>
+                  <p>
+                    Collaborate, Track, and Achieve Success Together <br />
+                    Set your team's vision, assign tasks, and make progress with ease. Stay focused, stay connected, and watch your goals come to life.
+                  </p>
+                </div>
                 <button className="team-goal-btn" onClick={() => setView("create")}>
                   Create a Goal
                 </button>
@@ -304,71 +310,96 @@ const TeamGoalPage = () => {
             <div className="team-goal-create">
               <h2 className="team-goal-heading">Create Team Goal</h2>
               <div className="team-goal-form">
-                <input
-                  type="text"
-                  placeholder="Title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="team-goal-input"
-                />
-                <textarea
-                  placeholder="Description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="team-goal-textarea"
-                />
-                <select
-                  value={priority}
-                  onChange={(e) => setPriority(e.target.value)}
-                  className="team-goal-select"
-                >
-                  <option value="Low">Low</option>
-                  <option value="Medium">Medium</option>
-                  <option value="High">High</option>
-                </select>
-                <input
-                  type="date"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                  className="team-goal-input"
-                />
+                <div className="team-goal-form-field">
+                  <label htmlFor="title">Title</label>
+                  <input
+                    id="title"
+                    type="text"
+                    placeholder="Enter goal title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="team-goal-input"
+                  />
+                </div>
+                <div className="team-goal-form-field">
+                  <label htmlFor="description">Description</label>
+                  <textarea
+                    id="description"
+                    placeholder="Enter goal description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="team-goal-textarea"
+                  />
+                </div>
+                <div className="team-goal-form-field">
+                  <label htmlFor="priority">Priority</label>
+                  <select
+                    id="priority"
+                    value={priority}
+                    onChange={(e) => setPriority(e.target.value)}
+                    className="team-goal-select"
+                  >
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                  </select>
+                </div>
+                <div className="team-goal-form-field">
+                  <label htmlFor="dueDate">Due Date</label>
+                  <input
+                    id="dueDate"
+                    type="date"
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
+                    className="team-goal-input"
+                  />
+                </div>
                 <div className="team-goal-members">
+                  <h3>Add Members</h3>
                   {members.map((member, index) => (
                     <div key={index} className="team-goal-member-row">
-                      <select
-                        value={member.memberId}
-                        onChange={(e) => {
-                          const newMembers = [...members];
-                          newMembers[index].memberId = e.target.value;
-                          setMembers(newMembers);
-                        }}
-                        className="team-goal-select"
-                      >
-                        <option value="">Select Member</option>
-                        {allUsers.map((user) => (
-                          <option key={user._id} value={user._id}>
-                            {user.username}
-                          </option>
-                        ))}
-                      </select>
-                      <input
-                        type="text"
-                        placeholder="Task"
-                        value={member.task}
-                        onChange={(e) => {
-                          const newMembers = [...members];
-                          newMembers[index].task = e.target.value;
-                          setMembers(newMembers);
-                        }}
-                        className="team-goal-input"
-                      />
+                      <div className="team-goal-form-field">
+                        <label htmlFor={`member-${index}`}>Member</label>
+                        <select
+                          id={`member-${index}`}
+                          value={member.memberId}
+                          onChange={(e) => {
+                            const newMembers = [...members];
+                            newMembers[index].memberId = e.target.value;
+                            setMembers(newMembers);
+                          }}
+                          className="team-goal-select"
+                        >
+                          <option value="">Select Member</option>
+                          {allUsers.map((user) => (
+                            <option key={user._id} value={user._id}>
+                              {user.username}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="team-goal-form-field">
+                        <label htmlFor={`task-${index}`}>Task</label>
+                        <input
+                          id={`task-${index}`}
+                          type="text"
+                          placeholder="Enter task"
+                          value={member.task}
+                          onChange={(e) => {
+                            const newMembers = [...members];
+                            newMembers[index].task = e.target.value;
+                            setMembers(newMembers);
+                          }}
+                          className="team-goal-input"
+                        />
+                      </div>
                     </div>
                   ))}
                   <button
                     className="team-goal-add-member-btn"
                     onClick={() => setMembers([...members, { memberId: "", task: "" }])}
                   >
-                    Add Member
+                    Add Another Member
                   </button>
                 </div>
                 <button className="team-goal-create-btn" onClick={handleCreateGoal}>
@@ -395,35 +426,44 @@ const TeamGoalPage = () => {
                   ))}
                   {isLeader && (
                     <div className="team-goal-add-member">
+                      <h4>Add New Member</h4>
                       {members.map((member, index) => (
                         <div key={index} className="team-goal-member-row">
-                          <select
-                            value={member.memberId}
-                            onChange={(e) => {
-                              const newMembers = [...members];
-                              newMembers[index].memberId = e.target.value;
-                              setMembers(newMembers);
-                            }}
-                            className="team-goal-select"
-                          >
-                            <option value="">Select Member</option>
-                            {allUsers.map((user) => (
-                              <option key={user._id} value={user._id}>
-                                {user.username}
-                              </option>
-                            ))}
-                          </select>
-                          <input
-                            type="text"
-                            placeholder="Task"
-                            value={member.task}
-                            onChange={(e) => {
-                              const newMembers = [...members];
-                              newMembers[index].task = e.target.value;
-                              setMembers(newMembers);
-                            }}
-                            className="team-goal-input"
-                          />
+                          <div className="team-goal-form-field">
+                            <label htmlFor={`add-member-${index}`}>Member</label>
+                            <select
+                              id={`add-member-${index}`}
+                              value={member.memberId}
+                              onChange={(e) => {
+                                const newMembers = [...members];
+                                newMembers[index].memberId = e.target.value;
+                                setMembers(newMembers);
+                              }}
+                              className="team-goal-select"
+                            >
+                              <option value="">Select Member</option>
+                              {allUsers.map((user) => (
+                                <option key={user._id} value={user._id}>
+                                  {user.username}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="team-goal-form-field">
+                            <label htmlFor={`add-task-${index}`}>Task</label>
+                            <input
+                              id={`add-task-${index}`}
+                              type="text"
+                              placeholder="Enter task"
+                              value={member.task}
+                              onChange={(e) => {
+                                const newMembers = [...members];
+                                newMembers[index].task = e.target.value;
+                                setMembers(newMembers);
+                              }}
+                              className="team-goal-input"
+                            />
+                          </div>
                         </div>
                       ))}
                       <button
@@ -502,7 +542,7 @@ const TeamGoalPage = () => {
               <Typography variant="subtitle1">Meeting ID: {meetingId}</Typography>
               <div className="video-meeting-container">
                 <JitsiMeeting
-                  domain="jitsi.riot.im" // Use a different public server
+                  domain="jitsi.riot.im"
                   roomName={meetingId}
                   configOverwrite={{
                     disableThirdPartyRequests: true,

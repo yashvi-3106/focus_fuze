@@ -6,6 +6,7 @@
   width: 96vw;
   height: 94vh;
   overflow: hidden;
+  margin-top: 4em;
 }
 
 /* Loader Styles */
@@ -38,6 +39,7 @@
   display: flex;
   gap: 25px;
   height: 100%;
+  /* margin-top: 4em; */
 }
 
 /* Note Input Section */

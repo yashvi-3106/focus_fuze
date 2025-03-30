@@ -119,21 +119,24 @@ const { goalId } = req.params;
 
 // Route to mark a task as complete
 router.put("/:goalId/complete", async (req, res) => {
+  const { goalId } = req.params;
+  console.log(`Marking goal as complete: ${goalId}`); // Should log
   try {
     const db = getDb();
     const goalsCollection = db.collection("goals");
 
     const result = await goalsCollection.updateOne(
-      { _id: new ObjectId(req.params.goalId) },  // ✅ Convert string to ObjectId
+      { _id: new ObjectId(goalId) },
       { $set: { status: "Completed" } }
     );
 
+    console.log(`Update result: ${JSON.stringify(result)}`);
     if (result.modifiedCount === 0) {
       return res.status(404).json({ message: "Goal not found" });
     }
 
-    const updatedGoal = await goalsCollection.findOne({ _id: new ObjectId(req.params.goalId) });
-    res.json(updatedGoal); // Return the full updated goal
+    const updatedGoal = await goalsCollection.findOne({ _id: new ObjectId(goalId) });
+    res.json(updatedGoal);
   } catch (error) {
     console.error("Error marking goal as complete:", error);
     res.status(500).json({ message: "Server error", error: error.message });

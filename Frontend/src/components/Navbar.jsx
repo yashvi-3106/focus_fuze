@@ -39,16 +39,16 @@ const Navbar = () => {
         <Link to="/notes" className="link">Notes</Link>
         <Link to="/calendar" className="link">Calendar</Link>
         <Link to="/save-video" className="link">NoteTube</Link>
-        <Link to="/chat" className="link">Chat</Link>
+        <Link to="/dashboard" className="link">Dashboard</Link>
         <Link to="/profile" className="link">Profile</Link>
     
 
-        <Link to="/dashboard" className="link">Dashboard</Link>
+     
       </div>
 
 
         
-      </div>
+      {/* </div> */}
     </nav>
   );
 };

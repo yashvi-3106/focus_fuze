@@ -104,15 +104,39 @@ router.get("/", async (req, res) => {
   }
 });
 
+// Fetch a Single Goal by taskId
+router.get("/:taskId", async (req, res) => {
+  try {
+    const { taskId } = req.params;
+    console.log(`Fetching goal with taskId: ${taskId}`); // Debug log
+    const goal = await TeamGoal.findOne({ taskId });
+    if (!goal) {
+      const allGoals = await TeamGoal.find({}, "taskId");
+      console.log(`Goal with taskId ${taskId} not found. Current goals in database:`, allGoals.map(g => g.taskId));
+      return res.status(404).json({ error: "Goal not found" });
+    }
+    res.json(goal);
+  } catch (error) {
+    console.error("Error fetching goal:", error);
+    res.status(500).json({ error: "Error fetching goal" });
+  }
+});
+
 // Add Members to a Goal (Leader Only)
 router.put("/:taskId/members", async (req, res) => {
   try {
     const { taskId } = req.params;
     const { members } = req.body;
+    console.log(`Attempting to add members to goal with taskId: ${taskId}`, members);
     const goal = await TeamGoal.findOne({ taskId });
-    if (!goal) return res.status(404).json({ error: "Goal not found" });
+    if (!goal) {
+      const allGoals = await TeamGoal.find({}, "taskId");
+      console.log(`Goal with taskId ${taskId} not found. Current goals in database:`, allGoals.map(g => g.taskId));
+      return res.status(404).json({ error: "Goal not found" });
+    }
     goal.members.push(...members.map(m => ({ ...m, username: m.username || "Unknown" })));
     await goal.save();
+    console.log(`Members added to goal with taskId ${taskId}`);
     res.json(goal);
   } catch (error) {
     console.error("Error adding members:", error);
@@ -168,6 +192,78 @@ router.delete("/:taskId/comments/:commentId", async (req, res) => {
   } catch (error) {
     console.error("Error deleting comment:", error);
     res.status(500).json({ error: "Error deleting comment" });
+  }
+});
+
+// Delete a Goal (Leader Only - Deletes Entire Goal)
+router.delete("/:taskId", async (req, res) => {
+  try {
+    const { taskId } = req.params;
+    const { userId } = req.query; // Get userId from query params
+    console.log(`Attempting to delete goal with taskId: ${taskId} for userId: ${userId}`);
+    const goal = await TeamGoal.findOne({ taskId });
+    if (!goal) {
+      const allGoals = await TeamGoal.find({}, "taskId");
+      console.log(`Goal with taskId ${taskId} not found. Current goals in database:`, allGoals.map(g => g.taskId));
+      return res.status(404).json({ error: "Goal not found" });
+    }
+
+    // Check if the user is the leader
+    if (goal.leaderId !== userId) {
+      return res.status(403).json({ error: "Only the leader can delete the entire goal" });
+    }
+
+    await TeamGoal.deleteOne({ taskId });
+    console.log(`Goal with taskId ${taskId} deleted successfully`);
+    res.json({ message: "Goal deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting goal:", error);
+    res.status(500).json({ error: "Error deleting goal" });
+  }
+});
+
+// Remove Member from a Goal (Member Only - Removes Themselves)
+router.delete("/:taskId/members/:memberId", async (req, res) => {
+  try {
+    const { taskId, memberId } = req.params;
+    const { userId } = req.query; // Get userId from query params
+    console.log(`Attempting to remove member ${memberId} from goal with taskId: ${taskId} for userId: ${userId}`);
+    const goal = await TeamGoal.findOne({ taskId });
+    if (!goal) {
+      const allGoals = await TeamGoal.find({}, "taskId");
+      console.log(`Goal with taskId ${taskId} not found. Current goals in database:`, allGoals.map(g => g.taskId));
+      return res.status(404).json({ error: "Goal not found" });
+    }
+
+    // Check if the user is trying to remove themselves
+    if (memberId !== userId) {
+      return res.status(403).json({ error: "You can only remove yourself from the goal" });
+    }
+
+    // Check if the user is the leader (leaders can't remove themselves this way)
+    if (goal.leaderId === userId) {
+      return res.status(403).json({ error: "Leaders cannot remove themselves this way. Use the delete goal option instead." });
+    }
+
+    // Remove the member from the goal
+    goal.members = goal.members.filter(member => member.memberId !== memberId);
+    await goal.save();
+    console.log(`Member ${memberId} removed from goal with taskId ${taskId}`);
+    res.json(goal);
+  } catch (error) {
+    console.error("Error removing member from goal:", error);
+    res.status(500).json({ error: "Error removing member from goal" });
+  }
+});
+
+// Debug Route: Fetch All Goals (Admin/Debug Use Only)
+router.get("/debug/all-goals", async (req, res) => {
+  try {
+    const goals = await TeamGoal.find({});
+    res.json(goals);
+  } catch (error) {
+    console.error("Error fetching all goals:", error);
+    res.status(500).json({ error: "Error fetching all goals" });
   }
 });
 
