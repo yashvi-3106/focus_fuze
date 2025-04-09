@@ -20,6 +20,7 @@ import ErrorBoundary from "./pages/ErrorBoundary";
 import Dashboard from "./pages/Dashboard";
 
 
+
 // In index.js or App.jsx
 import axios from "axios";
 axios.defaults.withCredentials = true;
@@ -70,6 +71,7 @@ const MainContent = () => {
 
         <Route path="/dashboard" element={<Dashboard />} />
 
+    
       </Routes>
     </div>
   );

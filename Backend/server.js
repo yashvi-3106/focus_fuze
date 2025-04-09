@@ -13,6 +13,7 @@ const savedVideosRoutes = require("./SavedVideos");
 const teamGoalRoutes = require("./teamGoal");
 const profileRouter = require("./profile");
 
+
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -26,6 +27,7 @@ app.use((req, res, next) => {
 });
 
 const allowedOrigins = [
+  " http://localhost:4200",
   "http://localhost:5178",
   "http://localhost:5173",
   "https://focuss-fuze.netlify.app",
@@ -81,6 +83,7 @@ app.use("/calendar", calendarRoutes);
 app.use("/api/videos", savedVideosRoutes);
 app.use("/team-goals", teamGoalRoutes);
 app.use("/api/profile", profileRouter);
+
 app.use("/uploads", express.static("uploads"));
 app.use("/uploads", express.static("uploads"));
 
