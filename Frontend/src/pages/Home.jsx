@@ -16,7 +16,7 @@ const HomePage = () => {
           </p>
           <div className="hero-buttons">
             <button className="hero-btn primary-btn">Get Started Now</button>
-            <button className="hero-btn secondary-btn">Watch Demo</button>
+            <button className="hero-btn secondary-btn"   onClick={() => window.open("https://www.youtube.com/watch?v=pY5dqOt33Js", "_blank")}>Watch Demo</button>
           </div>
         </div>
         <div className="hero-images">
@@ -63,7 +63,7 @@ const HomePage = () => {
               <strong>Why it matters:</strong> Stay focused, avoid overwhelm, and turn your dreams 
               into measurable achievements with a system designed to keep you on track.
             </p>
-            <button className="feature-btn">Get Started</button>
+            <button className="feature-btn" >Get Started</button>
           </div>
         </div>
 

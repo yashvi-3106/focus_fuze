@@ -16,10 +16,12 @@
 
 .logo {
   margin-left: 1.5em;
+  margin-top: 0.2em;
+
 }
 
 .logo img {
-  height: 40px; /* Default logo size */
+  height: 25px; /* Default logo size */
 }
 
 .item {
