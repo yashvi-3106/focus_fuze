@@ -1,3 +1,5 @@
+// 
+
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { FaEdit, FaTrash } from "react-icons/fa";
@@ -6,7 +8,6 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./PersonalGoal.css";
 import { TiTick } from "react-icons/ti";
-
 
 const PersonalGoal = () => {
   const [goals, setGoals] = useState([]);
@@ -21,23 +22,24 @@ const PersonalGoal = () => {
   });
   const [editingGoal, setEditingGoal] = useState(null);
   const [userId, setUserId] = useState(localStorage.getItem("userId"));
-
   const navigate = useNavigate();
 
   useEffect(() => {
     if (userId) {
       fetchGoals();
+    } else {
+      toast.error("User not authenticated. Please log in.");
+      navigate("/login"); // Redirect to login if no userId
     }
-    // Request notification permission every time the component mounts
+
     Notification.requestPermission().then((permission) => {
       console.log("Notification permission:", permission);
     });
 
-    // Set up notification check every 5 seconds
-    const interval = setInterval(checkDueDates, 60 * 60 * 1000); // Every 5 seconds
-    checkDueDates(); // Initial check on mount
-    return () => clearInterval(interval); // Cleanup on unmount
-  }, [userId]);
+    const interval = setInterval(checkDueDates, 60 * 60 * 1000);
+    checkDueDates();
+    return () => clearInterval(interval);
+  }, [userId, navigate]);
 
   const fetchGoals = async () => {
     setLoading(true);
@@ -48,9 +50,9 @@ const PersonalGoal = () => {
         setLoading(false);
       }, 1000);
     } catch (error) {
-      console.error("Error fetching goals:", error);
+      console.error("Error fetching goals:", error.response?.data, error.message);
       setLoading(false);
-      toast.error("Failed to fetch goals.");
+      toast.error(error.response?.data?.message || "Failed to fetch goals.");
     }
   };
 
@@ -67,10 +69,26 @@ const PersonalGoal = () => {
       toast.error("Please fill in all required fields!");
       return;
     }
+    if (!userId) {
+      toast.error("User not authenticated. Please log in.");
+      navigate("/login");
+      return;
+    }
 
     setLoading(true);
     try {
-      await axios.post("https://focus-fuze.onrender.com/personal-goals", { ...newGoal, userId });
+      const payload = {
+        ...newGoal,
+        userId,
+        rewardPoints: newGoal.rewardPoints ? parseInt(newGoal.rewardPoints, 10) : undefined,
+      };
+      console.log("Add Goal Payload:", payload);
+      await axios.post("https://focus-fuze.onrender.com/personal-goals", payload, {
+        headers: {
+          "Content-Type": "application/json",
+          // Add if authentication is required: Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
       setTimeout(() => {
         fetchGoals();
         resetForm();
@@ -78,61 +96,62 @@ const PersonalGoal = () => {
         toast.success("Goal added successfully!");
       }, 1000);
     } catch (error) {
-      console.error("Error adding goal:", error);
+      console.error("Error adding goal:", error.response?.data, error.message);
       setLoading(false);
-      toast.error("Failed to add goal.");
+      toast.error(error.response?.data?.message || "Failed to add goal.");
     }
   };
 
   const deleteGoal = async (id) => {
     setLoading(true);
     try {
-      await axios.delete(`https://focus-fuze.onrender.com/personal-goals/${id}`);
+      await axios.delete(`https://focus-fuze.onrender.com/personal-goals/${id}`, {
+        headers: {
+          // Add if authentication is required: Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
       setTimeout(() => {
         fetchGoals();
         setLoading(false);
         toast.success("Goal deleted successfully!");
       }, 1000);
     } catch (error) {
-      console.error("Error deleting goal:", error);
-      toast.error("Failed to delete goal.");
+      console.error("Error deleting goal:", error.response?.data, error.message);
+      toast.error(error.response?.data?.message || "Failed to delete goal.");
       setLoading(false);
     }
   };
 
   const editGoal = (goal) => {
     setEditingGoal(goal._id);
-    setNewGoal({ ...goal });
+    setNewGoal({ ...goal, rewardPoints: goal.rewardPoints || "" });
   };
 
   const markAsComplete = async (goalId) => {
     try {
-      const response = await fetch(`https://focus-fuze.onrender.com/${goalId}/complete`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "Completed" }),
-      });
+      const response = await axios.put(
+        `https://focus-fuze.onrender.com/personal-goals/${goalId}/complete`,
+        { status: "Completed" },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            // Add if authentication is required: Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
 
-      if (!response.ok) {
-        throw new Error("Failed to update goal");
-      }
-
-      const updatedGoal = await response.json();
-
-      // Update the goals state with the full updated goal from the backend
       setGoals((prevGoals) =>
         prevGoals.map((goal) =>
-          goal._id === goalId ? updatedGoal : goal
+          goal._id === goalId ? response.data : goal
         )
       );
 
       toast.success("Goal marked as complete!");
     } catch (error) {
-      console.error("Error updating goal:", error);
-      toast.error("Failed to mark goal as complete.");
+      console.error("Error updating goal:", error.response?.data, error.message);
+      toast.error(error.response?.data?.message || "Failed to mark goal as complete.");
     }
   };
-
 
   const updateGoal = async () => {
     if (!editingGoal) return;
@@ -140,7 +159,17 @@ const PersonalGoal = () => {
     setLoading(true);
     try {
       const { _id, ...updatedGoalData } = newGoal;
-      await axios.put(`https://focus-fuze.onrender.com/personal-goals/${editingGoal}`, updatedGoalData);
+      const payload = {
+        ...updatedGoalData,
+        rewardPoints: newGoal.rewardPoints ? parseInt(newGoal.rewardPoints, 10) : undefined,
+      };
+      console.log("Update Goal Payload:", payload);
+      await axios.put(`https://focus-fuze.onrender.com/personal-goals/${editingGoal}`, payload, {
+        headers: {
+          "Content-Type": "application/json",
+          // Add if authentication is required: Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
       setTimeout(() => {
         fetchGoals();
         setEditingGoal(null);
@@ -149,8 +178,8 @@ const PersonalGoal = () => {
         toast.success("Goal updated successfully!");
       }, 1000);
     } catch (error) {
-      console.error("Error updating goal:", error);
-      toast.error("Failed to update goal.");
+      console.error("Error updating goal:", error.response?.data, error.message);
+      toast.error(error.response?.data?.message || "Failed to update goal.");
       setLoading(false);
     }
   };
@@ -177,20 +206,16 @@ const PersonalGoal = () => {
     goals.forEach((goal) => {
       const deadline = new Date(goal.deadline);
       const timeDiff = deadline - now;
-      const hoursLeft = Math.ceil(timeDiff / (1000 * 60 * 60)); // Convert to hours
+      const hoursLeft = Math.ceil(timeDiff / (1000 * 60 * 60));
       console.log(`Goal: ${goal.title}, Hours Left: ${hoursLeft}`);
 
-      if (hoursLeft > 0) {
-        // Notify if deadline is within 24 hours
-        if (hoursLeft <= 24) {
-          new Notification("FocusFuze Reminder", {
-            body: `Goal "${goal.title}" is due in ${hoursLeft} hour${hoursLeft === 1 ? "" : "s"}!`,
-            icon: "https://img.freepik.com/free-vector/goal-achievement-career-promotion-school-graduation-motivation-business-achievement-concept_335657-925.jpg",
-          });
-          console.log(`Notification sent: ${goal.title} due in ${hoursLeft} hours`);
-        }
+      if (hoursLeft > 0 && hoursLeft <= 24) {
+        new Notification("FocusFuze Reminder", {
+          body: `Goal "${goal.title}" is due in ${hoursLeft} hour${hoursLeft === 1 ? "" : "s"}!`,
+          icon: "https://img.freepik.com/free-vector/goal-achievement-career-promotion-school-graduation-motivation-business-achievement-concept_335657-925.jpg",
+        });
+        console.log(`Notification sent: ${goal.title} due in ${hoursLeft} hours`);
       } else if (timeDiff <= 0) {
-        // Overdue notification
         new Notification("FocusFuze Reminder", {
           body: `Goal "${goal.title}" is overdue!`,
           icon: "https://img.freepik.com/free-vector/goal-achievement-career-promotion-school-graduation-motivation-business-achievement-concept_335657-925.jpg",
@@ -202,7 +227,6 @@ const PersonalGoal = () => {
 
   return (
     <div className="personal-goal-container">
-      {/* Left Section: Fixed Input Form */}
       <section className="goal-form-section">
         <h2 className="section-title">
           {editingGoal ? "Edit Your Goal" : "Set a New Goal"}
@@ -256,7 +280,7 @@ const PersonalGoal = () => {
             </div>
           </div>
 
-          <label className="form-label">Reward Points (Optional)</label>
+          <label className="form-label">Reward Points</label>
           <input
             type="number"
             name="rewardPoints"
@@ -275,7 +299,6 @@ const PersonalGoal = () => {
         </div>
       </section>
 
-      {/* Right Section: Scrollable Goal List */}
       <section className="goal-list-section">
         <h2 className="section-title">Your Goals</h2>
         <p className="section-subtitle">Track Your Progress</p>
