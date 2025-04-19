@@ -25,7 +25,7 @@ const TeamGoalPage = () => {
   const [meetingId, setMeetingId] = useState("");
   const [isMeetingActive, setIsMeetingActive] = useState(false);
 
-  const API_URL = "http://localhost:3000/team-goals";
+  const API_URL = "https://focus-fuze.onrender.com/team-goals";
 
   useEffect(() => {
     if (!userId) {

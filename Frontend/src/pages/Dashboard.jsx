@@ -41,11 +41,11 @@ const Dashboard = () => {
     setLoading(true)
     try {
       // Fetch Personal Goals
-      const personalGoalsResponse = await axios.get(`http://localhost:3000/personal-goals/${userId}`)
+      const personalGoalsResponse = await axios.get(`https://focus-fuze.onrender.com/personal-goals/${userId}`)
       const personalGoals = personalGoalsResponse.data
 
       // Fetch Team Goals
-      const teamGoalsResponse = await axios.get(`http://localhost:3000/team-goals`, {
+      const teamGoalsResponse = await axios.get(`https://focus-fuze.onrender.com/team-goals`, {
         params: { userId },
       })
       const teamGoals = teamGoalsResponse.data

@@ -42,7 +42,7 @@ const PersonalGoal = () => {
   const fetchGoals = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`http://localhost:3000/personal-goals/${userId}`);
+      const response = await axios.get(`https://focus-fuze.onrender.com/personal-goals/${userId}`);
       setTimeout(() => {
         setGoals(response.data);
         setLoading(false);
@@ -70,7 +70,7 @@ const PersonalGoal = () => {
 
     setLoading(true);
     try {
-      await axios.post("http://localhost:3000/personal-goals", { ...newGoal, userId });
+      await axios.post("https://focus-fuze.onrender.com/personal-goals", { ...newGoal, userId });
       setTimeout(() => {
         fetchGoals();
         resetForm();
@@ -87,7 +87,7 @@ const PersonalGoal = () => {
   const deleteGoal = async (id) => {
     setLoading(true);
     try {
-      await axios.delete(`http://localhost:3000/personal-goals/${id}`);
+      await axios.delete(`https://focus-fuze.onrender.com/personal-goals/${id}`);
       setTimeout(() => {
         fetchGoals();
         setLoading(false);
@@ -107,7 +107,7 @@ const PersonalGoal = () => {
 
   const markAsComplete = async (goalId) => {
     try {
-      const response = await fetch(`http://localhost:3000/personal-goals/${goalId}/complete`, {
+      const response = await fetch(`https://focus-fuze.onrender.com/personal-goals/${goalId}/complete`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "Completed" }),
@@ -140,7 +140,7 @@ const PersonalGoal = () => {
     setLoading(true);
     try {
       const { _id, ...updatedGoalData } = newGoal;
-      await axios.put(`http://localhost:3000/personal-goals/${editingGoal}`, updatedGoalData);
+      await axios.put(`https://focus-fuze.onrender.com/personal-goals/${editingGoal}`, updatedGoalData);
       setTimeout(() => {
         fetchGoals();
         setEditingGoal(null);

@@ -17,7 +17,7 @@ const SaveVideo = () => {
     if (!userId) return;
     setLoading(true);
     try {
-      const res = await axios.get(`http://localhost:3000/api/videos/saved/${userId}`);
+      const res = await axios.get(`https://focus-fuze.onrender.com/api/videos/saved/${userId}`);
       setSavedVideos(res.data || []); // Ensure data is an array
     } catch (error) {
      
@@ -36,7 +36,7 @@ const SaveVideo = () => {
     if (!videoUrl.trim()) return toast.warning("Please enter a valid YouTube URL!");
     setLoading(true);
     try {
-      await axios.post("http://localhost:3000/api/videos/save", { userId, videoUrl });
+      await axios.post("https://focus-fuze.onrender.com/api/videos/save", { userId, videoUrl });
       setVideoUrl(""); // Clear input field
       toast.success("Video saved successfully!");
       fetchVideos(); // Refresh saved videos list
@@ -50,7 +50,7 @@ const SaveVideo = () => {
   const deleteVideo = async (videoId) => {
     setLoading(true);
     try {
-      await axios.delete(`http://localhost:3000/api/videos/delete/${videoId}`, {
+      await axios.delete(`https://focus-fuze.onrender.com/api/videos/delete/${videoId}`, {
         data: { userId }, // Sending userId for verification
       });
       toast.success("Video deleted successfully!");

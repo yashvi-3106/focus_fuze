@@ -17,7 +17,7 @@ const Note = () => {
   const [endDate, setEndDate] = useState("");
   const [sortOrder, setSortOrder] = useState("recent");
 
-  const API_URL = "http://localhost:3000/notes";
+  const API_URL = "https://focus-fuze.onrender.com/notes";
 
   useEffect(() => {
     if (userId) {

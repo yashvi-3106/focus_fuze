@@ -24,8 +24,8 @@ const Profile = () => {
   const navigate = useNavigate();
   const userId = localStorage.getItem("userId");
 
-  const API_URL = "http://localhost:3000/api/profile";
-  const BASE_URL = "http://localhost:3000"; // Base URL for static files
+  const API_URL = "https://focus-fuze.onrender.com/api/profile";
+  const BASE_URL = "https://focus-fuze.onrender.com"; // Base URL for static files
 
   // Fetch profile data on component mount
   useEffect(() => {

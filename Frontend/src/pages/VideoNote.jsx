@@ -20,7 +20,7 @@ const VideoNote = () => {
       try {
         console.log("Fetching notes for videoId:", videoId, "and userId:", userId);
 
-        const res = await axios.get(`http://localhost:3000/api/videos/saved/${userId}`);
+        const res = await axios.get(`https://focus-fuze.onrender.com/api/videos/saved/${userId}`);
         const video = res.data.find((v) => v._id === videoId);
         if (video) {
           setVideoUrl(video.videoUrl);
@@ -29,7 +29,7 @@ const VideoNote = () => {
         }
 
         try {
-          const noteRes = await axios.get(`http://localhost:3000/api/videos/get-note/${videoId}/${userId}`);
+          const noteRes = await axios.get(`https://focus-fuze.onrender.com/api/videos/get-note/${videoId}/${userId}`);
           console.log("Fetched notes:", noteRes.data);
           setNotes(noteRes.data.notes || "");
         } catch (error) {
@@ -49,7 +49,7 @@ const VideoNote = () => {
   const saveNotes = async () => {
     setLoading(true);
     try {
-      await axios.post(`http://localhost:3000/api/videos/save-note/${videoId}`, { userId, notes });
+      await axios.post(`https://focus-fuze.onrender.com/api/videos/save-note/${videoId}`, { userId, notes });
       toast.success("Notes saved successfully!");
     } catch (error) {
       toast.error("Error saving notes!");
