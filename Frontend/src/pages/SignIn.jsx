@@ -36,7 +36,7 @@ const SignIn = () => {
 
     try {
       await axios.post(
-        "http://localhost:3000/auth/register",
+        "https://focus-fuze.onrender.com/auth/register",
         formData,
         { withCredentials: true }
       );

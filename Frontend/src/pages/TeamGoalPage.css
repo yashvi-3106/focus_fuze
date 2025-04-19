@@ -7,6 +7,7 @@
   margin: 0 auto;
   background-color: #f9fafb;
   min-height: 100vh;
+
 }
 
 /* Loader styles */
@@ -31,6 +32,7 @@
 /* Main view styles */
 .team-goal-main {
   text-align: center;
+
 }
 
 .team-goal-options {
@@ -332,6 +334,7 @@
   max-height: 400px;
   overflow-y: auto;
   padding-right: 10px;
+ /* margin-left: 25em; */
 }
 
 .team-goal-comment {
@@ -393,6 +396,7 @@
   resize: vertical;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
   color: black;
+
 }
 
 .team-goal-comment-input:focus {
