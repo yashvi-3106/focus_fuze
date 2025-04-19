@@ -283,7 +283,7 @@ const CalendarPage = () => {
   });
   const userId = localStorage.getItem("userId") || "";
 
-  const API_URL = "https://focus-fuze.onrender.com/calendar";
+  const API_URL = " http://localhost:3000/calendar";
 
   useEffect(() => {
     if (userId) {
