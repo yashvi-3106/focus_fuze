@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import axios from "axios"
-import { toast } from "react-toastify"
-import "react-toastify/dist/ReactToastify.css"
-import { Pie, Line } from "react-chartjs-2"
+import { useEffect, useMemo, useState } from "react";
+import axios from "axios";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { Pie, Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -14,10 +14,19 @@ import {
   PointElement,
   LinearScale,
   CategoryScale,
-} from "chart.js"
-import "./Dashboard.css"
+} from "chart.js";
 
-ChartJS.register(ArcElement, Tooltip, Legend, LineElement, PointElement, LinearScale, CategoryScale)
+ChartJS.register(
+  ArcElement,
+  Tooltip,
+  Legend,
+  LineElement,
+  PointElement,
+  LinearScale,
+  CategoryScale
+);
+
+const API = "https://focus-fuze.onrender.com";
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -27,97 +36,102 @@ const Dashboard = () => {
     totalRewards: 0,
     tasksAsLeader: 0,
     tasksAsMember: 0,
-  })
-  const [activityData, setActivityData] = useState({ labels: [], datasets: [] })
-  const [loading, setLoading] = useState(false)
-  const userId = localStorage.getItem("userId")
+  });
+
+  const [activityData, setActivityData] = useState({
+    labels: [],
+    datasets: [],
+  });
+
+  const [loading, setLoading] = useState(false);
+  const userId = localStorage.getItem("userId");
 
   const fetchDashboardStats = async () => {
     if (!userId) {
-      toast.error("User not logged in!")
-      return
+      toast.error("User not logged in!");
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
     try {
-      // Fetch Personal Goals
-      const personalGoalsResponse = await axios.get(`https://focus-fuze.onrender.com/personal-goals/${userId}`)
-      const personalGoals = personalGoalsResponse.data
-
-      // Fetch Team Goals
-      const teamGoalsResponse = await axios.get(`https://focus-fuze.onrender.com/team-goals`, {
-        params: { userId },
-      })
-      const teamGoals = teamGoalsResponse.data
-
       // Personal Goals
-      const totalTasks = personalGoals.length
-      const completedGoals = personalGoals.filter((goal) => goal.status === "Completed")
-      const completedTasks = completedGoals.length
-      const pendingTasks = totalTasks - completedTasks
-      const totalRewards = completedGoals.reduce((sum, goal) => sum + (Number(goal.rewardPoints) || 0), 0)
+      const personalGoalsResponse = await axios.get(`${API}/personal-goals/${userId}`);
+      const personalGoals = personalGoalsResponse.data || [];
 
       // Team Goals
-      const tasksAsLeader = teamGoals.filter((goal) => goal.leaderId === userId).length
+      const teamGoalsResponse = await axios.get(`${API}/team-goals`, { params: { userId } });
+      const teamGoals = teamGoalsResponse.data || [];
+
+      // Personal stats
+      const totalTasks = personalGoals.length;
+      const completedGoals = personalGoals.filter((g) => g.status === "Completed");
+      const completedTasks = completedGoals.length;
+      const pendingTasks = totalTasks - completedTasks;
+      const totalRewards = completedGoals.reduce(
+        (sum, g) => sum + (Number(g.rewardPoints) || 0),
+        0
+      );
+
+      // Team stats
+      const tasksAsLeader = teamGoals.filter((g) => g.leaderId === userId).length;
       const tasksAsMember = teamGoals.filter(
-        (goal) => goal.members.some((member) => member.memberId === userId) && goal.leaderId !== userId,
-      ).length
+        (g) => g.members?.some((m) => m.memberId === userId) && g.leaderId !== userId
+      ).length;
 
-      // Recent Activity Data (last 7 days)
-      const activityDates = {}
-      const today = new Date()
-      const sevenDaysAgo = new Date(today)
-      sevenDaysAgo.setDate(today.getDate() - 6) // Last 7 days including today
+      // Activity (7 days)
+      const activityDates = {};
+      const today = new Date();
+      const sevenDaysAgo = new Date(today);
+      sevenDaysAgo.setDate(today.getDate() - 6);
 
-      // Initialize activity counts for the last 7 days
       for (let i = 0; i < 7; i++) {
-        const date = new Date(sevenDaysAgo)
-        date.setDate(sevenDaysAgo.getDate() + i)
-        const dateKey = date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
-        activityDates[dateKey] = 0
+        const d = new Date(sevenDaysAgo);
+        d.setDate(sevenDaysAgo.getDate() + i);
+        const key = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+        activityDates[key] = 0;
       }
 
-      // Count personal goal creations and completions
       personalGoals.forEach((goal) => {
-        const createdDate = new Date(goal.createdAt)
-        const updatedDate = goal.updatedAt ? new Date(goal.updatedAt) : null
-        if (createdDate >= sevenDaysAgo) {
-          const dateKey = createdDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })
-          activityDates[dateKey] = (activityDates[dateKey] || 0) + 1 // Task created
+        const createdDate = goal.createdAt ? new Date(goal.createdAt) : null;
+        const updatedDate = goal.updatedAt ? new Date(goal.updatedAt) : null;
+
+        if (createdDate && createdDate >= sevenDaysAgo) {
+          const key = createdDate.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+          activityDates[key] = (activityDates[key] || 0) + 1;
         }
+
         if (updatedDate && updatedDate >= sevenDaysAgo && goal.status === "Completed") {
-          const dateKey = updatedDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })
-          activityDates[dateKey] = (activityDates[dateKey] || 0) + 1 // Task completed
+          const key = updatedDate.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+          activityDates[key] = (activityDates[key] || 0) + 1;
         }
-      })
+      });
 
-      // Count team goal creations
       teamGoals.forEach((goal) => {
-        const createdDate = new Date(goal.createdAt)
-        if (createdDate >= sevenDaysAgo) {
-          const dateKey = createdDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })
-          activityDates[dateKey] = (activityDates[dateKey] || 0) + 1 // Team task created
+        const createdDate = goal.createdAt ? new Date(goal.createdAt) : null;
+        if (createdDate && createdDate >= sevenDaysAgo) {
+          const key = createdDate.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+          activityDates[key] = (activityDates[key] || 0) + 1;
         }
-      })
+      });
 
-      // Prepare chart data
-      const labels = Object.keys(activityDates)
-      const data = Object.values(activityDates)
+      const labels = Object.keys(activityDates);
+      const data = Object.values(activityDates);
 
       setActivityData({
         labels,
         datasets: [
           {
-            label: "Recent Activity (Tasks Created/Completed)",
+            label: "Recent Activity",
             data,
             fill: true,
-            backgroundColor: "rgba(79, 70, 229, 0.1)",
-            borderColor: "#4f46e5",
-            tension: 0.4,
-            pointBackgroundColor: "#4f46e5",
+            backgroundColor: "rgba(15, 23, 42, 0.08)",
+            borderColor: "rgba(15, 23, 42, 0.8)",
+            tension: 0.35,
+            pointRadius: 3,
+            pointHoverRadius: 5,
           },
         ],
-      })
+      });
 
       setStats({
         totalTasks,
@@ -126,149 +140,234 @@ const Dashboard = () => {
         totalRewards,
         tasksAsLeader,
         tasksAsMember,
-      })
-      setLoading(false)
+      });
     } catch (error) {
-      console.error("Error fetching dashboard stats:", error)
-      setLoading(false)
-      toast.error("Failed to load dashboard data.")
+      console.error("Error fetching dashboard stats:", error);
+      toast.error("Failed to load dashboard data.");
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchDashboardStats()
-  }, [userId])
+    fetchDashboardStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
   // Pie chart data
-  const chartData = {
-    labels: ["Completed", "Pending"],
-    datasets: [
-      {
-        data: [stats.completedTasks, stats.pendingTasks],
-        backgroundColor: ["#4f46e5", "#fbbf24"],
-        hoverBackgroundColor: ["#4338ca", "#f59e0b"],
-        borderWidth: 0,
-      },
-    ],
-  }
+  const pieData = useMemo(() => {
+    return {
+      labels: ["Completed", "Pending"],
+      datasets: [
+        {
+          data: [stats.completedTasks, stats.pendingTasks],
+          backgroundColor: ["#0f172a", "#e2e8f0"],
+          hoverBackgroundColor: ["#111827", "#cbd5e1"],
+          borderWidth: 0,
+        },
+      ],
+    };
+  }, [stats.completedTasks, stats.pendingTasks]);
 
-  // Line chart options
-  const lineChartOptions = {
+  const pieOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+  };
+
+  const lineOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
     scales: {
       y: {
         beginAtZero: true,
-        grid: {
-          color: "rgba(0, 0, 0, 0.05)",
-        },
-        ticks: {
-          font: {
-            size: 12,
-          },
-          color: "#6b7280",
-        },
+        grid: { color: "rgba(15,23,42,0.06)" },
+        ticks: { color: "#64748b", font: { size: 12 } },
       },
       x: {
-        grid: {
-          display: false,
-        },
-        ticks: {
-          font: {
-            size: 12,
-          },
-          color: "#6b7280",
-        },
+        grid: { display: false },
+        ticks: { color: "#64748b", font: { size: 12 } },
       },
     },
-    plugins: {
-      legend: {
-        display: false,
-      },
-    },
-  }
+  };
 
-  // Pie chart options
-  const pieChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: false,
-      },
-    },
-  }
+  const completionRate = useMemo(() => {
+    if (!stats.totalTasks) return 0;
+    return Math.round((stats.completedTasks / stats.totalTasks) * 100);
+  }, [stats.completedTasks, stats.totalTasks]);
 
   return (
-    <div className="dashboard-container">
-      <h1 className="dashboard-title">Track Your Progress At A Glance</h1>
-
-      {loading ? (
-        <div className="loader-container">
-          <img src="https://cdn-icons-png.freepik.com/256/11857/11857533.png" alt="Loading..." className="loader" />
-        </div>
-      ) : (
-        <>
-          <div className="stats-grid">
-            <div className="stat-card total-tasks">
-              <h2>Total Tasks</h2>
-              <p className="stat-number">{stats.totalTasks}</p>
-            </div>
-            <div className="stat-card completed-tasks">
-              <h2>Completed Tasks</h2>
-              <p className="stat-number">{stats.completedTasks}</p>
-            </div>
-            <div className="stat-card pending-tasks">
-              <h2>Pending Tasks</h2>
-              <p className="stat-number">{stats.pendingTasks}</p>
-            </div>
+    <div className="min-h-screen bg-slate-50 pt-[10px] pb-10">
+      <div className="mx-auto max-w-6xl px-4">
+        {/* Header */}
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900">
+              Dashboard
+            </h1>
+            <p className="mt-1 text-sm text-slate-500">
+              Track your progress at a glance — tasks, rewards, and weekly activity.
+            </p>
           </div>
 
-          <div className="dashboard-layout">
-            <div className="chart-container">
-              <h2>Task Distribution</h2>
-              <div style={{ height: "300px" }}>
-                <Pie data={chartData} options={pieChartOptions} />
-                <div className="chart-legend">
-                  <div className="legend-item">
-                    <div className="legend-color completed"></div>
-                    <span>Completed</span>
+          <button
+            onClick={fetchDashboardStats}
+            className="inline-flex w-fit items-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 active:scale-[0.98] transition"
+          >
+            ↻ Refresh
+          </button>
+        </div>
+
+        {/* Loading */}
+        {loading ? (
+          <div className="rounded-3xl border border-slate-200 bg-white p-10 shadow-sm">
+            <div className="flex items-center gap-4">
+              <img
+                src="https://cdn-icons-png.freepik.com/256/11857/11857533.png"
+                alt="Loading"
+                className="h-10 w-10 animate-spin"
+              />
+              <div>
+                <div className="text-sm font-semibold text-slate-900">Loading dashboard…</div>
+                <div className="text-sm text-slate-500">Fetching your latest stats.</div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Top cards */}
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="text-sm font-medium text-slate-500">Total Tasks</div>
+                <div className="mt-2 text-3xl font-semibold text-slate-900">
+                  {stats.totalTasks}
+                </div>
+                <div className="mt-3 h-2 w-full rounded-full bg-slate-100">
+                  <div
+                    className="h-2 rounded-full bg-slate-900"
+                    style={{ width: `${Math.min(completionRate, 100)}%` }}
+                  />
+                </div>
+                <div className="mt-2 text-xs text-slate-500">
+                  Completion rate: <span className="font-semibold">{completionRate}%</span>
+                </div>
+              </div>
+
+              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="text-sm font-medium text-slate-500">Completed</div>
+                <div className="mt-2 text-3xl font-semibold text-slate-900">
+                  {stats.completedTasks}
+                </div>
+                <div className="mt-2 inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
+                  ✓ Good progress
+                </div>
+              </div>
+
+              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="text-sm font-medium text-slate-500">Pending</div>
+                <div className="mt-2 text-3xl font-semibold text-slate-900">
+                  {stats.pendingTasks}
+                </div>
+                <div className="mt-2 inline-flex items-center rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 ring-1 ring-amber-200">
+                  ⏳ Keep going
+                </div>
+              </div>
+            </div>
+
+            {/* Charts row */}
+            <div className="mt-6 grid gap-4 lg:grid-cols-3">
+              {/* Pie */}
+              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-1">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-base font-semibold text-slate-900">Task Distribution</h2>
+                  <span className="text-xs font-semibold text-slate-500">
+                    Completed vs Pending
+                  </span>
+                </div>
+
+                <div className="mt-5 h-[260px]">
+                  <Pie data={pieData} options={pieOptions} />
+                </div>
+
+                <div className="mt-4 flex items-center justify-center gap-4 text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 rounded-full bg-slate-900" />
+                    <span className="text-slate-700">Completed</span>
                   </div>
-                  <div className="legend-item">
-                    <div className="legend-color pending" style={{ backgroundColor: "#fbbf24" }}></div>
-                    <span>Pending</span>
+                  <div className="flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 rounded-full bg-slate-200" />
+                    <span className="text-slate-700">Pending</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Metrics */}
+              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-base font-semibold text-slate-900">Performance</h2>
+                  <span className="text-xs font-semibold text-slate-500">Personal + Team</span>
+                </div>
+
+                <div className="mt-5 grid gap-4 sm:grid-cols-3">
+                  <div className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200">
+                    <div className="text-xs font-semibold text-slate-500">Total Rewards</div>
+                    <div className="mt-2 text-2xl font-semibold text-slate-900">
+                      {stats.totalRewards}
+                    </div>
+                    <div className="text-xs text-slate-500">points earned</div>
+                  </div>
+
+                  <div className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200">
+                    <div className="text-xs font-semibold text-slate-500">Tasks as Leader</div>
+                    <div className="mt-2 text-2xl font-semibold text-slate-900">
+                      {stats.tasksAsLeader}
+                    </div>
+                    <div className="text-xs text-slate-500">team goals owned</div>
+                  </div>
+
+                  <div className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200">
+                    <div className="text-xs font-semibold text-slate-500">Tasks as Member</div>
+                    <div className="mt-2 text-2xl font-semibold text-slate-900">
+                      {stats.tasksAsMember}
+                    </div>
+                    <div className="text-xs text-slate-500">team goals joined</div>
+                  </div>
+                </div>
+
+                <div className="mt-5 rounded-2xl bg-white ring-1 ring-slate-200 p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm font-semibold text-slate-900">
+                      Weekly Activity
+                    </div>
+                    <div className="text-xs text-slate-500">last 7 days</div>
+                  </div>
+                  <div className="mt-3 h-[220px]">
+                    <Line data={activityData} options={lineOptions} />
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="performance-metrics">
-              <div className="stat-card total-rewards">
-                <h2>Total Rewards</h2>
-                <p className="stat-number">{stats.totalRewards} Points</p>
+            {/* Bottom full-width chart */}
+            <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="flex items-center justify-between">
+                <h2 className="text-base font-semibold text-slate-900">
+                  Recent Activity (Last 7 Days)
+                </h2>
+                <span className="text-xs font-semibold text-slate-500">
+                  created + completed tasks
+                </span>
               </div>
-              <div className="stat-card tasks-as-leader">
-                <h2>Tasks as Leader</h2>
-                <p className="stat-number">{stats.tasksAsLeader}</p>
-              </div>
-              <div className="stat-card tasks-as-member">
-                <h2>Tasks as Member</h2>
-                <p className="stat-number">{stats.tasksAsMember}</p>
+              <div className="mt-4 h-[320px]">
+                <Line data={activityData} options={lineOptions} />
               </div>
             </div>
-          </div>
-
-          <div className="chart-container">
-            <h2>Recent Activity (Last 7 Days)</h2>
-            <div style={{ height: "300px" }}>
-              <Line data={activityData} options={lineChartOptions} />
-            </div>
-          </div>
-        </>
-      )}
+          </>
+        )}
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default Dashboard
-
+export default Dashboard;

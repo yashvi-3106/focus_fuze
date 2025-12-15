@@ -1,17 +1,13 @@
 import { useState } from "react";
 import axios from "axios";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 
-const SignIn = () => {
+const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const [formData, setFormData] = useState({
-    username: "",
-    email: "",
-    password: "",
-  });
-
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -26,14 +22,20 @@ const SignIn = () => {
     setLoading(true);
 
     try {
-      await axios.post("https://focus-fuze.onrender.com/auth/register", formData, {
-        withCredentials: true,
-      });
+      const response = await axios.post(
+        "https://focus-fuze.onrender.com/auth/login",
+        formData,
+        { withCredentials: true }
+      );
 
-      toast.success("Registration successful! Please log in.");
-      navigate("/login");
+      localStorage.setItem("userId", response.data.userId);
+      localStorage.setItem("username", response.data.username);
+
+      toast.success("Login successful! 🎉");
+      const from = location.state?.from?.pathname || "/home";
+      navigate(from, { replace: true });
     } catch (err) {
-      const msg = err.response?.data?.error || "Registration failed.";
+      const msg = err.response?.data?.error || "Failed to login.";
       setError(msg);
       toast.error(msg);
     } finally {
@@ -52,7 +54,7 @@ const SignIn = () => {
       {/* Page content */}
       <div className="relative mx-auto flex min-h-screen max-w-6xl items-center justify-center px-4 py-10">
         <div className="grid w-full items-center gap-8 lg:grid-cols-2">
-          {/* Left: marketing panel */}
+          {/* Left panel */}
           <div className="hidden lg:block">
             <div className="rounded-3xl border border-slate-200 bg-white/70 p-8 shadow-sm backdrop-blur">
               <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700">
@@ -61,21 +63,21 @@ const SignIn = () => {
               </div>
 
               <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900">
-                Create your account,
-                <span className="block text-slate-600">start focusing today.</span>
+                Welcome back,
+                <span className="block text-slate-600">let’s continue your progress.</span>
               </h1>
 
               <p className="mt-3 text-sm leading-6 text-slate-600">
-                Track personal goals, collaborate on team goals, take notes, and keep
-                your calendar in one place — clean UI, fast workflow.
+                Keep goals moving, stay aligned with your team, and capture ideas fast —
+                with a calm, premium workspace.
               </p>
 
               <div className="mt-6 grid gap-3">
                 {[
-                  "✅ Personal goals with progress",
-                  "✅ Team goals + comments + meetings",
-                  "✅ Notes + calendar planning",
-                  "✅ Dashboard insights",
+                  "✅ Continue personal goals",
+                  "✅ Track team tasks & comments",
+                  "✅ Notes & calendar in one place",
+                  "✅ Clean dashboard overview",
                 ].map((t) => (
                   <div
                     key={t}
@@ -88,16 +90,16 @@ const SignIn = () => {
             </div>
           </div>
 
-          {/* Right: signup form */}
+          {/* Right: login form */}
           <div className="w-full">
             <div className="mx-auto w-full max-w-md rounded-3xl border border-slate-200 bg-white/80 p-7 shadow-sm backdrop-blur">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h2 className="text-2xl font-semibold tracking-tight text-slate-900">
-                    Create Account
+                    Welcome Back
                   </h2>
                   <p className="mt-1 text-sm text-slate-500">
-                    Join us and boost your productivity.
+                    Login to access your account.
                   </p>
                 </div>
 
@@ -118,20 +120,6 @@ const SignIn = () => {
 
               <form onSubmit={handleSubmit} className="mt-6 space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-slate-700">
-                    Username
-                  </label>
-                  <input
-                    name="username"
-                    value={formData.username}
-                    onChange={handleChange}
-                    required
-                    placeholder="Enter your username"
-                    className="mt-2 w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm outline-none transition focus:shadow-[0_0_0_4px_rgba(99,102,241,0.12)]"
-                  />
-                </div>
-
-                <div>
                   <label className="text-sm font-medium text-slate-700">Email</label>
                   <input
                     name="email"
@@ -145,16 +133,14 @@ const SignIn = () => {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-slate-700">
-                    Password
-                  </label>
+                  <label className="text-sm font-medium text-slate-700">Password</label>
                   <input
                     name="password"
                     type="password"
                     value={formData.password}
                     onChange={handleChange}
                     required
-                    placeholder="Create a strong password"
+                    placeholder="Enter your password"
                     className="mt-2 w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm outline-none transition focus:shadow-[0_0_0_4px_rgba(99,102,241,0.12)]"
                   />
                 </div>
@@ -167,31 +153,31 @@ const SignIn = () => {
                   {loading ? (
                     <>
                       <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                      Creating…
+                      Logging in…
                     </>
                   ) : (
-                    "SIGN UP"
+                    "LOGIN"
                   )}
                 </button>
               </form>
 
               <p className="mt-5 text-center text-sm text-slate-600">
-                Already have an account?{" "}
-                <Link to="/login" className="font-semibold text-slate-900 hover:underline">
-                  Log In
+                Don&apos;t have an account?{" "}
+                <Link
+                  to="/register"
+                  className="font-semibold text-slate-900 hover:underline"
+                >
+                  Sign Up
                 </Link>
               </p>
             </div>
 
-            {/* Mobile quick info */}
+            {/* Mobile helper */}
             <div className="mx-auto mt-6 max-w-md rounded-3xl border border-slate-200 bg-white/70 p-5 text-sm text-slate-600 shadow-sm backdrop-blur lg:hidden">
-              <div className="font-semibold text-slate-900">What you’ll get</div>
-              <ul className="mt-2 list-disc space-y-1 pl-5">
-                <li>Personal goals with progress</li>
-                <li>Team goals + meetings + comments</li>
-                <li>Notes & calendar</li>
-                <li>Dashboard insights</li>
-              </ul>
+              <div className="font-semibold text-slate-900">Quick access</div>
+              <p className="mt-2">
+                Login to manage goals, team tasks, notes, and your calendar in one place.
+              </p>
             </div>
           </div>
         </div>
@@ -200,4 +186,4 @@ const SignIn = () => {
   );
 };
 
-export default SignIn;
+export default Login;

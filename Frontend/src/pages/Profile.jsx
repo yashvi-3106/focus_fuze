@@ -1,33 +1,34 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import "./Profile.css";
+
+const API_URL = "https://focus-fuze.onrender.com/api/profile";
+const BASE_URL = "https://focus-fuze.onrender.com";
+const fallbackAvatar =
+  "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+
+const inputBase =
+  "w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm outline-none transition focus:shadow-[0_0_0_4px_rgba(99,102,241,0.12)]";
 
 const Profile = () => {
+  const navigate = useNavigate();
+  const userId = localStorage.getItem("userId");
+
   const [profile, setProfile] = useState({
     name: "",
     bio: "",
     contact: "",
-    socialMedia: {
-      facebook: "",
-      twitter: "",
-      instagram: "",
-      linkedin: "",
-    },
-    profilePhoto: null,
+    socialMedia: { facebook: "", twitter: "", instagram: "", linkedin: "" },
+    profilePhoto: null, // File when editing, string from server when fetched
   });
-  const [loading, setLoading] = useState(false);
+
   const [previewPhoto, setPreviewPhoto] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  const navigate = useNavigate();
-  const userId = localStorage.getItem("userId");
+  const [loading, setLoading] = useState(false);
 
-  const API_URL = "https://focus-fuze.onrender.com/api/profile";
-  const BASE_URL = "https://focus-fuze.onrender.com"; // Base URL for static files
-
-  // Fetch profile data on component mount
+  // Fetch profile
   useEffect(() => {
     if (!userId) {
       toast.error("Please log in to access your profile");
@@ -35,14 +36,15 @@ const Profile = () => {
       return;
     }
     fetchProfile();
-  }, [userId, navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
   const fetchProfile = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API_URL}/${userId}`);
-      const data = response.data || {};
-      console.log("Fetched profile data:", data); // Debug log
+      const res = await axios.get(`${API_URL}/${userId}`);
+      const data = res.data || {};
+
       setProfile({
         name: data.name || "",
         bio: data.bio || "",
@@ -55,64 +57,56 @@ const Profile = () => {
         },
         profilePhoto: data.profilePhoto || null,
       });
-      // Construct the correct URL for the profile photo
-      setPreviewPhoto(data.profilePhoto ? `${BASE_URL}${data.profilePhoto}` : null);
-      console.log("Constructed preview photo URL:", data.profilePhoto ? `${BASE_URL}${data.profilePhoto}` : null); // Debug log
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-      toast.error("Error fetching profile: " + (error.message || "Unknown error"));
+
+      // ✅ IMPORTANT: backend returns "uploads/xxx.jpg" => needs BASE_URL + "/"
+      setPreviewPhoto(data.profilePhoto ? `${BASE_URL}/${data.profilePhoto}` : null);
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Failed to fetch profile");
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle file upload for profile photo
+  // File upload
   const handlePhotoUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) {
-      console.log("No file selected");
-      return;
-    }
-    console.log("Selected file:", file); // Debug log
+    const file = e.target.files?.[0];
+    if (!file) return;
+
     if (!file.type.startsWith("image/")) {
       toast.error("Please upload an image file");
       return;
     }
-    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+    if (file.size > 5 * 1024 * 1024) {
       toast.error("Image size must be less than 5MB");
       return;
     }
-    setProfile((prev) => ({ ...prev, profilePhoto: file }));
-    const previewUrl = URL.createObjectURL(file);
-    setPreviewPhoto(previewUrl); // Update preview with new file
-    console.log("Preview URL generated:", previewUrl); // Debug log
+
+    setProfile((p) => ({ ...p, profilePhoto: file }));
+
+    const url = URL.createObjectURL(file);
+    setPreviewPhoto(url);
   };
 
-  // Cleanup object URLs on unmount
+  // Cleanup object URL
   useEffect(() => {
     return () => {
-      if (previewPhoto && previewPhoto.startsWith("blob:")) {
-        URL.revokeObjectURL(previewPhoto);
-      }
+      if (previewPhoto?.startsWith("blob:")) URL.revokeObjectURL(previewPhoto);
     };
   }, [previewPhoto]);
 
-  // Handle input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setProfile((prev) => ({ ...prev, [name]: value }));
+    setProfile((p) => ({ ...p, [name]: value }));
   };
 
-  // Handle social media link changes
-  const handleSocialMediaChange = (e) => {
+  const handleSocialChange = (e) => {
     const { name, value } = e.target;
-    setProfile((prev) => ({
-      ...prev,
-      socialMedia: { ...prev.socialMedia, [name]: value },
+    setProfile((p) => ({
+      ...p,
+      socialMedia: { ...p.socialMedia, [name]: value },
     }));
   };
 
-  // Save profile details
   const saveProfile = async () => {
     if (!profile.name.trim()) {
       toast.warn("Name is required");
@@ -121,217 +115,250 @@ const Profile = () => {
 
     setLoading(true);
     try {
-      const formData = new FormData();
-      formData.append("userId", userId);
-      formData.append("name", profile.name);
-      formData.append("bio", profile.bio);
-      formData.append("contact", profile.contact);
-      formData.append("socialMedia", JSON.stringify(profile.socialMedia));
+      const fd = new FormData();
+      fd.append("userId", userId);
+      fd.append("name", profile.name);
+      fd.append("bio", profile.bio);
+      fd.append("contact", profile.contact);
+      fd.append("socialMedia", JSON.stringify(profile.socialMedia));
+
+      // ✅ Only append if user picked a new file
       if (profile.profilePhoto && typeof profile.profilePhoto !== "string") {
-        formData.append("profilePhoto", profile.profilePhoto);
-      } else {
-        formData.append("profilePhoto", ""); // Send empty if no new photo
+        fd.append("profilePhoto", profile.profilePhoto);
       }
 
-      const response = await axios.post(API_URL, formData, {
+      await axios.post(API_URL, fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      console.log("Save response:", response.data); // Debug log
-      toast.success("Profile saved successfully!");
+
+      toast.success("Profile saved!");
       setIsEditing(false);
-      fetchProfile(); // Refresh profile data
-    } catch (error) {
-      console.error("Error saving profile:", error);
-      toast.error("Error saving profile: " + (error.message || "Unknown error"));
+      await fetchProfile();
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Failed to save profile");
     } finally {
       setLoading(false);
     }
   };
 
-  // Logout function
   const handleLogout = () => {
     localStorage.removeItem("userId");
-    toast.success("Logged out successfully!");
-    setTimeout(() => navigate("/login"), 1000);
+    localStorage.removeItem("username");
+    toast.success("Logged out!");
+    navigate("/login");
   };
 
   return (
-    <div className="profile-main-container">
-      {/* Toast notification container */}
-      <ToastContainer position="top-right" autoClose={2000} className="profile-toast-container" />
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 pt-[96px] pb-10">
+      <ToastContainer position="top-right" autoClose={2000} />
 
-      {/* Loader */}
-      {loading && (
-        <div className="profile-loader-container">
-          <img
-            src="https://cdn-icons-png.freepik.com/256/11857/11857533.png"
-            alt="Loading..."
-            className="profile-loader"
-          />
+      <div className="mx-auto max-w-5xl px-4">
+        {/* Header */}
+        <div className="mb-6 rounded-3xl border border-slate-200 bg-white/80 backdrop-blur shadow-sm">
+          <div className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900">
+                Profile
+              </h1>
+              <p className="mt-1 text-sm text-slate-500">
+                Manage your info & social links.
+              </p>
+            </div>
+
+            <div className="flex gap-2">
+              {!isEditing ? (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition"
+                >
+                  Edit Profile
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={() => {
+                      setIsEditing(false);
+                      fetchProfile();
+                    }}
+                    className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={saveProfile}
+                    disabled={loading}
+                    className="rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition disabled:opacity-60"
+                  >
+                    {loading ? "Saving..." : "Save"}
+                  </button>
+                </>
+              )}
+
+              <button
+                onClick={handleLogout}
+                className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-700 hover:bg-rose-100 transition"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
         </div>
-      )}
 
-      <h2 className="profile-heading">Your Profile</h2>
-      <p className="profile-subheading">Manage Your Details</p>
+        {/* Body */}
+        <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
+          {/* Left card: avatar */}
+          <div className="rounded-3xl border border-slate-200 bg-white/80 backdrop-blur shadow-sm p-6">
+            <div className="flex items-center gap-4">
+              <div className="h-20 w-20 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+                <img
+                  src={previewPhoto || fallbackAvatar}
+                  alt="Profile"
+                  className="h-full w-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src = fallbackAvatar;
+                  }}
+                />
+              </div>
 
-      <div className="profile-content">
-        <div className="profile-photo-section">
-          <div className="profile-photo-wrapper">
-            {previewPhoto ? (
-              <img
-                src={previewPhoto}
-                alt="Profile"
-                className="profile-photo"
-                onError={(e) => {
-                  console.log("Image load error, reverting to placeholder:", e.target.src);
-                  e.target.src = ""; // Clear invalid src
-                  setPreviewPhoto(null); // Revert to placeholder
-                }}
-              />
-            ) : (
-              <div className="profile-photo-placeholder">
-                <span>No Photo</span>
+              <div className="min-w-0">
+                <div className="text-sm text-slate-500">Signed in as</div>
+                <div className="truncate text-lg font-semibold text-slate-900">
+                  {profile.name || "Unnamed user"}
+                </div>
+              </div>
+            </div>
+
+            {isEditing && (
+              <div className="mt-5">
+                <label className="text-sm font-medium text-slate-700">
+                  Profile photo
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                  className="mt-2 block w-full text-sm"
+                />
+                <p className="mt-2 text-xs text-slate-500">
+                  JPG/PNG up to 5MB.
+                </p>
+              </div>
+            )}
+
+            {loading && (
+              <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-600">
+                Loading...
               </div>
             )}
           </div>
-          {isEditing && (
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handlePhotoUpload}
-              className="profile-photo-input"
-            />
-          )}
-        </div>
 
-        <div className="profile-details-section">
-          {isEditing ? (
-            <>
-              <input
-                type="text"
-                name="name"
-                value={profile.name}
-                onChange={handleInputChange}
-                placeholder="Name"
-                className="profile-input-field"
-              />
-              <textarea
-                name="bio"
-                value={profile.bio}
-                onChange={handleInputChange}
-                placeholder="Bio"
-                className="profile-input-field profile-textarea"
-              />
-              <input
-                type="text"
-                name="contact"
-                value={profile.contact}
-                onChange={handleInputChange}
-                placeholder="Contact Info (Email/Phone)"
-                className="profile-input-field"
-              />
-              <div className="profile-social-media">
-                <input
-                  type="url"
-                  name="facebook"
-                  value={profile.socialMedia.facebook}
-                  onChange={handleSocialMediaChange}
-                  placeholder="Facebook URL"
-                  className="profile-input-field"
-                />
-                <input
-                  type="url"
-                  name="twitter"
-                  value={profile.socialMedia.twitter}
-                  onChange={handleSocialMediaChange}
-                  placeholder="Twitter URL"
-                  className="profile-input-field"
-                />
-                <input
-                  type="url"
-                  name="instagram"
-                  value={profile.socialMedia.instagram}
-                  onChange={handleSocialMediaChange}
-                  placeholder="Instagram URL"
-                  className="profile-input-field"
-                />
-                <input
-                  type="url"
-                  name="linkedin"
-                  value={profile.socialMedia.linkedin}
-                  onChange={handleSocialMediaChange}
-                  placeholder="LinkedIn URL"
-                  className="profile-input-field"
-                />
-              </div>
-              <div className="profile-actions">
-                <button onClick={saveProfile} className="profile-save-btn">
-                  Save
-                </button>
-                <button onClick={() => setIsEditing(false)} className="profile-cancel-btn">
-                  Cancel
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              <h3 className="profile-name">{profile.name || "No Name Set"}</h3>
-              <p className="profile-bio">{profile.bio || "No Bio Set"}</p>
-              <p className="profile-contact">
-                Contact: {profile.contact || "No Contact Info"}
-              </p>
-              <div className="profile-social-links">
-                {profile.socialMedia.facebook && (
-                  <a
-                    href={profile.socialMedia.facebook}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="profile-social-link"
-                  >
-                    Facebook
-                  </a>
-                )}
-                {profile.socialMedia.twitter && (
-                  <a
-                    href={profile.socialMedia.twitter}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="profile-social-link"
-                  >
-                    Twitter
-                  </a>
-                )}
-                {profile.socialMedia.instagram && (
-                  <a
-                    href={profile.socialMedia.instagram}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="profile-social-link"
-                  >
-                    Instagram
-                  </a>
-                )}
-                {profile.socialMedia.linkedin && (
-                  <a
-                    href={profile.socialMedia.linkedin}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="profile-social-link"
-                  >
-                    LinkedIn
-                  </a>
+          {/* Right card: details */}
+          <div className="rounded-3xl border border-slate-200 bg-white/80 backdrop-blur shadow-sm p-6">
+            <div className="grid gap-4">
+              <div>
+                <label className="text-sm font-medium text-slate-700">Name</label>
+                {isEditing ? (
+                  <input
+                    name="name"
+                    value={profile.name}
+                    onChange={handleInputChange}
+                    className={inputBase}
+                    placeholder="Your name"
+                  />
+                ) : (
+                  <div className="mt-2 text-slate-900 font-medium">
+                    {profile.name || "—"}
+                  </div>
                 )}
               </div>
-              <div className="profile-actions">
-                <button onClick={() => setIsEditing(true)} className="profile-edit-btn">
-                  Edit Profile
-                </button>
-                <button onClick={handleLogout} className="profile-logout-btn">
-                  Logout
-                </button>
+
+              <div>
+                <label className="text-sm font-medium text-slate-700">Bio</label>
+                {isEditing ? (
+                  <textarea
+                    name="bio"
+                    value={profile.bio}
+                    onChange={handleInputChange}
+                    className={`${inputBase} min-h-[120px] resize-none`}
+                    placeholder="A short bio..."
+                  />
+                ) : (
+                  <div className="mt-2 text-slate-700 whitespace-pre-line">
+                    {profile.bio || "—"}
+                  </div>
+                )}
               </div>
-            </>
-          )}
+
+              <div>
+                <label className="text-sm font-medium text-slate-700">Contact</label>
+                {isEditing ? (
+                  <input
+                    name="contact"
+                    value={profile.contact}
+                    onChange={handleInputChange}
+                    className={inputBase}
+                    placeholder="Email / phone"
+                  />
+                ) : (
+                  <div className="mt-2 text-slate-700">{profile.contact || "—"}</div>
+                )}
+              </div>
+
+              <div className="pt-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-semibold text-slate-900">
+                    Social links
+                  </h3>
+                  <span className="text-xs text-slate-500">
+                    Optional
+                  </span>
+                </div>
+
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  {["facebook", "twitter", "instagram", "linkedin"].map((key) => (
+                    <div key={key}>
+                      <label className="text-sm font-medium text-slate-700 capitalize">
+                        {key}
+                      </label>
+                      {isEditing ? (
+                        <input
+                          name={key}
+                          value={profile.socialMedia[key]}
+                          onChange={handleSocialChange}
+                          className={inputBase}
+                          placeholder={`https://${key}.com/...`}
+                        />
+                      ) : profile.socialMedia[key] ? (
+                        <a
+                          href={profile.socialMedia[key]}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mt-2 block truncate text-sm font-medium text-indigo-700 hover:underline"
+                        >
+                          {profile.socialMedia[key]}
+                        </a>
+                      ) : (
+                        <div className="mt-2 text-sm text-slate-500">—</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {!isEditing && (
+                <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
+                  <div className="text-sm font-semibold text-slate-900">
+                    Quick tips
+                  </div>
+                  <ul className="mt-2 list-disc pl-5 text-sm text-slate-600 space-y-1">
+                    <li>Use a clear profile photo for better identity.</li>
+                    <li>Keep bio short (1–2 lines).</li>
+                    <li>Add LinkedIn if you want professional visibility.</li>
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

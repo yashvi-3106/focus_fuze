@@ -1,168 +1,171 @@
+// Home.jsx
+import { Link } from "react-router-dom";
 
-import './Home.css';
+const FeatureCard = ({ title, desc, to, tag }) => (
+  <Link
+    to={to}
+    className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white/70 p-6 shadow-sm backdrop-blur transition hover:shadow-md"
+  >
+    <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-slate-100 opacity-0 transition group-hover:opacity-100" />
+    <div className="relative">
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="text-base font-semibold tracking-tight text-slate-900">
+          {title}
+        </h3>
+        {tag ? (
+          <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600">
+            {tag}
+          </span>
+        ) : null}
+      </div>
+      <p className="mt-2 text-sm leading-6 text-slate-600">{desc}</p>
 
-const HomePage = () => {
+      <div className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-slate-900">
+        Open
+        <span className="transition group-hover:translate-x-0.5">→</span>
+      </div>
+    </div>
+  </Link>
+);
+
+const Stat = ({ label, value }) => (
+  <div className="rounded-3xl border border-slate-200 bg-white/70 p-5 shadow-sm backdrop-blur">
+    <div className="text-xs font-semibold text-slate-500">{label}</div>
+    <div className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">
+      {value}
+    </div>
+  </div>
+);
+
+const Home = () => {
+  const username = localStorage.getItem("username") || "there";
+
   return (
-    <div className="homepage-container">
-      {/* Hero Section */}
-      <section className="hero-section">
-        <div className="hero-content">
-          <h1 className="hero-title">Welcome to FocusFuze</h1>
-          <p className="hero-tagline">Empower Your Productivity</p>
-          <p className="hero-desc">
-            Take control of your day with FocusFuze – the all-in-one solution for setting goals, 
-            scheduling tasks, and capturing insights from videos. Transform chaos into clarity 
-            and achieve more, effortlessly.
-          </p>
-          <div className="hero-buttons">
-            <button className="hero-btn primary-btn">Get Started Now</button>
-            <button className="hero-btn secondary-btn"   onClick={() => window.open("https://www.youtube.com/watch?v=pY5dqOt33Js", "_blank")}>Watch Demo</button>
-          </div>
-        </div>
-        <div className="hero-images">
-          <img 
-            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT63I_uW6Y1-MVI6HdJsRG_35x5deXy40X3U-A9GVf1AiWXvyQ09WpY5Pz0STA9n6iHHu4&usqp=CAU" 
-            alt="Goal Setting" 
-            className="hero-image hero-image-1" 
-          />
-          <img 
-            src="https://media.istockphoto.com/id/1281243724/vector/tiny-people-developing-self-control-system.jpg?s=612x612&w=0&k=20&c=cUIG--oBtTmrd_osFV5O91si0UQXxiYbNiOaz8vLuKY=" 
-            alt="Scheduling" 
-            className="hero-image hero-image-2" 
-          />
-          <img 
-            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTMlTjv3-5P8uQRWr4oRMZcWoz8LkJl5mC3QA&s" 
-            alt="Video Notes" 
-            className="hero-image hero-image-3" 
-          />
-          <img 
-            src="https://img.freepik.com/premium-vector/task-management-illustration-concept_108061-1992.jpg?semt=ais_hybrid" 
-            alt="Productivity" 
-            className="hero-image hero-image-4" 
-          />
-        </div>
-      </section>
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100">
+      {/* Background blobs */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="absolute -top-28 -left-28 h-80 w-80 rounded-full bg-slate-200/60 blur-3xl" />
+        <div className="absolute -bottom-28 -right-28 h-80 w-80 rounded-full bg-slate-200/60 blur-3xl" />
+      </div>
 
-      {/* Features Section */}
-      <section className="features-section">
-        <div className="feature-item">
-          <img 
-            src="https://media.istockphoto.com/id/1281243724/vector/tiny-people-developing-self-control-system.jpg?s=612x612&w=0&k=20&c=cUIG--oBtTmrd_osFV5O91si0UQXxiYbNiOaz8vLuKY=" 
-            alt="Goal Setting" 
-            className="feature-image feature-left" 
-          />
-          <div className="feature-content">
-            <h2 className="feature-title">Set Your Goals</h2>
-            <p className="feature-desc">
-            Define personal goals, track your progress, and stay motivated with clear milestones. 
-              Whether it’s a career aspiration, fitness target, or personal project, FocusFuze helps 
-              you break it down into actionable steps. Visualize your journey with intuitive progress 
-              trackers and celebrate every win along the way.
-            </p>
-            <p className="feature-benefit">
-              <strong>Why it matters:</strong> Stay focused, avoid overwhelm, and turn your dreams 
-              into measurable achievements with a system designed to keep you on track.
-            </p>
-            <button className="feature-btn" >Get Started</button>
+      {/* Content */}
+      <div className="relative mx-auto max-w-6xl px-4 pt-[10px] pb-12">
+        {/* Hero */}
+        <div className="rounded-3xl border border-slate-200 bg-white/75 p-7 shadow-sm backdrop-blur sm:p-10">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700">
+                <span className="h-2 w-2 rounded-full bg-slate-900" />
+                FocusFuze Workspace
+              </div>
+
+              <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+                Welcome, <span className="text-slate-600">{username}</span>
+              </h1>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
+                A calm, productivity-driven space to plan goals, collaborate with your
+                team, take notes, and stay on top of your schedule.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Link
+                to="/personal-goals"
+                className="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 active:scale-[0.99]"
+              >
+                Go to Personal Goals
+              </Link>
+              <Link
+                to="/team-goals"
+                className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-[0.99]"
+              >
+                Open Team Workspace
+              </Link>
+            </div>
+          </div>
+
+          {/* Quick stats (static placeholders – can wire later) */}
+          <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            <Stat label="Today’s focus" value="Plan + Execute" />
+            <Stat label="Next step" value="Review goals" />
+            <Stat label="Momentum" value="Keep it steady" />
           </div>
         </div>
 
-        <div className="feature-item feature-reverse">
-          <img 
-            src="https://img.freepik.com/premium-vector/managers-team-organize-project-calendar-professional-manager-workers-working-time-planner-calendars-teamwork-activity-organization-plan-illustration-deadline-reminder-task-planner_229548-19.jpg" 
-            alt="Calendar Scheduling" 
-            className="feature-image feature-right" 
+        {/* Section header */}
+        <div className="mt-10 flex items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold tracking-tight text-slate-900">
+            Quick Access
+          </h2>
+          <div className="hidden sm:block text-sm text-slate-500">
+            Jump into your main tools
+          </div>
+        </div>
+
+        {/* Cards */}
+        <div className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <FeatureCard
+            title="Personal Goals"
+            desc="Create goals, track progress, and stay accountable with clean goal cards."
+            to="/personal-goals"
+            tag="Goals"
           />
-          <div className="feature-content">
-            <h2 className="feature-title">Smart Scheduling</h2>
-            <p className="feature-desc">
-            Plan your day with an intuitive calendar that syncs effortlessly across all your devices. 
-              Schedule tasks, meetings, and personal time with drag-and-drop simplicity. Set reminders, 
-              prioritize tasks, and get a clear overview of your week to ensure nothing slips through 
-              the cracks.
-            </p>
-            <p className="feature-benefit">
-              <strong>Why it matters:</strong> Take charge of your schedule, reduce stress, and make 
-              time for what truly counts with a tool that adapts to your busy life.
-            </p>
-            <button className="feature-btn">Get Started</button>
-          </div>
-        </div>
-
-        <div className="feature-item">
-          <img 
-            src="https://img.freepik.com/premium-vector/concept-distance-online-education-vector-illistration_131728-168.jpg" 
-            alt="Video Notes" 
-            className="feature-image feature-left" 
-            height="500px"
-            width="800px"
+          <FeatureCard
+            title="Team Goals"
+            desc="Collaborate with teammates, assign tasks, comment, and run meetings."
+            to="/team-goals"
+            tag="Team"
           />
-          <div className="feature-content">
-            <h2 className="feature-title">Video Notes</h2>
-            <p className="feature-desc">
-            Save YouTube videos and create detailed notes while watching, all in one place. Highlight 
-              key moments, jot down insights, and organize your learning into searchable categories. 
-              Whether it’s a tutorial, lecture, or inspiration, FocusFuze turns passive watching into 
-              active productivity.
-            </p>
-            <p className="feature-benefit">
-              <strong>Why it matters:</strong> Retain more from every video, build a personal knowledge 
-              library, and access your notes anytime to fuel your growth.
-            </p>
-            <button className="feature-btn">Get Started</button>
+          <FeatureCard
+            title="Notes"
+            desc="Capture ideas quickly and keep everything organized in one place."
+            to="/notes"
+            tag="Notes"
+          />
+          <FeatureCard
+            title="Calendar"
+            desc="Plan deadlines, track upcoming work, and stay consistent."
+            to="/calendar"
+            tag="Schedule"
+          />
+          <FeatureCard
+            title="NoteTube"
+            desc="Save videos and create video notes for learning and revision."
+            to="/save-video"
+            tag="Media"
+          />
+          <FeatureCard
+            title="Dashboard"
+            desc="Get a high-level overview of your productivity and activity."
+            to="/dashboard"
+            tag="Overview"
+          />
+        </div>
+
+        {/* Bottom strip */}
+        <div className="mt-10 rounded-3xl border border-slate-200 bg-white/70 p-6 shadow-sm backdrop-blur">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="text-sm font-semibold text-slate-900">
+                Tip for today
+              </div>
+              <p className="mt-1 text-sm text-slate-600">
+                Pick 1 important goal, break it into 2 small tasks, and finish one task
+                before lunch.
+              </p>
+            </div>
+
+            <Link
+              to="/personal-goals"
+              className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-[0.99]"
+            >
+              Start with a goal →
+            </Link>
           </div>
         </div>
-      </section>
-
-      {/* About Us Section */}
-      <section className="about-section">
-        <div className="about-content">
-          <h2 className="section-title">About FocusFuze</h2>
-          <p className="about-desc">
-          FocusFuze is designed to help individuals and teams stay organized, focused, and productive. Our mission is to provide an intuitive, easy-to-use platform that helps you manage your goals, track progress, and collaborate effectively, so you can achieve more each day.
-          FocusFuze is here to help you prioritize what matters most and keep you on track.
-            Our mission is to help you stay organized and achieve your goals with innovative tools.
-          </p>
-        </div>
-      </section>
-
-      {/* Review Section */}
-      <section className="review-section">
-        <h2 className="section-title">What Our Users Say</h2>
-        <div className="review-container">
-          <div className="review-item">
-            <img 
-              src="https://img.freepik.com/free-vector/hand-drawn-star-icon_23-2147882315.jpg" 
-              alt="Review Star" 
-              className="review-icon" 
-            />
-            <p className="review-text">FocusFuze transformed how I manage my daily tasks!</p>
-            <span className="review-author">- John Doe</span>
-          </div>
-          <div className="review-item">
-            <img 
-              src="https://img.freepik.com/free-vector/hand-drawn-star-icon_23-2147882315.jpg" 
-              alt="Review Star" 
-              className="review-icon" 
-            />
-            <p className="review-text">The video notes feature is a game-changer.</p>
-            <span className="review-author">- Jane Smith</span>
-          </div>
-        </div>
-      </section>
-
-      {/* Contact Section */}
-      <section className="contact-section">
-        <h2 className="section-title">Get in Touch</h2>
-        <form className="contact-form">
-          <input type="text" placeholder="Your Name" className="contact-input" />
-          <input type="email" placeholder="Your Email" className="contact-input" />
-          <textarea placeholder="Your Message" className="contact-textarea"></textarea>
-          <button type="submit" className="contact-btn">Send Message</button>
-        </form>
-      </section>
+      </div>
     </div>
   );
 };
 
-export default HomePage;
+export default Home;
