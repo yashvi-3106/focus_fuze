@@ -23,7 +23,7 @@ const Login = () => {
 
     try {
       const response = await axios.post(
-        "https://focus-fuze.onrender.com/auth/login",
+        "https://focus-fuze-1.onrender.com/auth/login",
         formData,
         { withCredentials: true }
       );

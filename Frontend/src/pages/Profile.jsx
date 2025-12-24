@@ -4,8 +4,8 @@ import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const API_URL = "https://focus-fuze.onrender.com/api/profile";
-const BASE_URL = "https://focus-fuze.onrender.com";
+const API_URL = "https://focus-fuze-1.onrender.com/api/profile";
+const BASE_URL = "https://focus-fuze-1.onrender.com";
 const fallbackAvatar =
   "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 

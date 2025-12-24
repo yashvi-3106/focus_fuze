@@ -36,7 +36,7 @@ const getInitials = (text = "") => {
 };
 
 const TeamGoalPage = () => {
-  const API_URL = "https://focus-fuze.onrender.com/team-goals";
+  const API_URL = "https://focus-fuze-1.onrender.com/team-goals";
 
   const userId = localStorage.getItem("userId") || "";
   const username = localStorage.getItem("username") || "";

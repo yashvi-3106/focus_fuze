@@ -4,7 +4,7 @@ import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const API_BASE = "https://focus-fuze.onrender.com";
+const API_BASE = "https://focus-fuze-1.onrender.com";
 
 const getYoutubeId = (url = "") => {
   try {

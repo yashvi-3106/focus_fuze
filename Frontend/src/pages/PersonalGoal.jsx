@@ -104,7 +104,7 @@ const PersonalGoal = () => {
     setLoading(true);
     try {
       const res = await axios.get(
-        `https://focus-fuze.onrender.com/personal-goals/${userId}`
+        `https://focus-fuze-1.onrender.com/personal-goals/${userId}`
       );
       setGoals(res.data || []);
     } catch {
@@ -169,13 +169,13 @@ const PersonalGoal = () => {
     try {
       if (editingId) {
         await axios.put(
-          `https://focus-fuze.onrender.com/personal-goals/${editingId}`,
+          `https://focus-fuze-1.onrender.com/personal-goals/${editingId}`,
           payload
         );
         toast.success("Goal updated");
       } else {
         await axios.post(
-          "https://focus-fuze.onrender.com/personal-goals",
+          "https://focus-fuze-1.onrender.com/personal-goals",
           payload
         );
         toast.success("Goal added");
@@ -190,7 +190,7 @@ const PersonalGoal = () => {
 
   const deleteGoal = async (id) => {
     try {
-      await axios.delete(`https://focus-fuze.onrender.com/personal-goals/${id}`);
+      await axios.delete(`https://focus-fuze-1.onrender.com/personal-goals/${id}`);
       toast.success("Goal deleted");
       fetchGoals();
     } catch {
@@ -201,7 +201,7 @@ const PersonalGoal = () => {
   const markAsComplete = async (id) => {
     try {
       const res = await axios.put(
-        `https://focus-fuze.onrender.com/personal-goals/${id}/complete`
+        `https://focus-fuze-1.onrender.com/personal-goals/${id}/complete`
       );
       setGoals((prev) => prev.map((g) => (g._id === id ? res.data : g)));
       toast.success("Completed");

@@ -26,7 +26,7 @@ ChartJS.register(
   CategoryScale
 );
 
-const API = "https://focus-fuze.onrender.com";
+const API = "https://focus-fuze-1.onrender.com";
 
 const Dashboard = () => {
   const [stats, setStats] = useState({

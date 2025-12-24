@@ -5,7 +5,7 @@ A comprehensive productivity platform designed to help individuals and teams sta
 ## 🚀 Live Demo
 - **Demo Video**: Watch on YouTube (replace with your demo video link)
 - **Frontend**: https://focusfuze.netlify.app
-- **Backend API**: https://focus-fuze.onrender.com
+- **Backend API**: https://focus-fuze-1.onrender.com
 - **API Documentation**: Postman Collection (replace with your Postman link)
 
 ## ✨ Features

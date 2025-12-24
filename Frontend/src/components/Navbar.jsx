@@ -11,8 +11,8 @@ const Navbar = () => {
 
   const userId = localStorage.getItem("userId");
 
-  const API_URL = "http://localhost:3000/api/profile";
-  const BASE_URL = "http://localhost:3000";
+  const API_URL = "https://focus-fuze-1.onrender.com/api/profile";
+  const BASE_URL = "https://focus-fuze-1.onrender.com";
   const defaultAvatar =
     "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
@@ -36,7 +36,7 @@ const Navbar = () => {
   }, [location.pathname]);
 
   const logout = async () => {
-    await fetch("https://focus-fuze.onrender.com/auth/logout", {
+    await fetch("https://focus-fuze-1.onrender.com/auth/logout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
     });

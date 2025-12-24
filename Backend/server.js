@@ -1,12 +1,12 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const session = require('express-session');
-const { connectToDatabase } = require('./db');
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+const session = require("express-session");
+const { connectToDatabase } = require("./db");
 
-// Import routes
-const authenticationRoutes = require('./authentication');
-const personalGoalRoutes = require('./personalGoal');
+// Routes
+const authenticationRoutes = require("./authentication");
+const personalGoalRoutes = require("./personalGoal");
 const notesRoutes = require("./notes");
 const calendarRoutes = require("./calendar");
 const savedVideosRoutes = require("./SavedVideos");
@@ -16,110 +16,143 @@ const profileRouter = require("./profile");
 const app = express();
 const port = process.env.PORT || 3000;
 
-// CORS configuration
-const allowedOrigins = [
-  "http://localhost:4200",
-  "http://localhost:5178",
-  "http://localhost:5173",
-  "https://focusfuze.netlify.app",
-  "http://localhost:5176",
-  "https://focus-fuze.onrender.com"
-];
-
-// Enable CORS pre-flight
-app.options('*', cors());
-
-// CORS middleware
-// CORS middleware - place this right after your CORS configuration
-app.use((req, res, next) => {
-    const origin = req.headers.origin;
-    
-    // Check if the origin is in the allowed list
-    if (allowedOrigins.includes(origin)) {
-        res.header('Access-Control-Allow-Origin', origin);
-        res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-        res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-        res.header('Access-Control-Allow-Credentials', 'true');
-    }
-
-    // Handle preflight requests
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
-    }
-
-    next();
-});
-
-// Body parser middleware
+/* --------------------------------------------------
+   BASIC MIDDLEWARE
+-------------------------------------------------- */
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
-// Debugging: Log incoming requests
+/* --------------------------------------------------
+   DEBUG REQUEST ORIGIN
+-------------------------------------------------- */
 app.use((req, res, next) => {
-  console.log(`[${req.method}] ${req.path} - Origin: ${req.headers.origin}`);
+  console.log(`[${req.method}] ${req.path} | Origin: ${req.headers.origin}`);
   next();
 });
 
-// Session configuration
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'default_secret',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    maxAge: 1000 * 60 * 60 * 24, // 1 day
-  },
-}));
+/* --------------------------------------------------
+   CORS CONFIG (ONLY PLACE WHERE CORS IS HANDLED)
+-------------------------------------------------- */
+const allowedOrigins = [
+  "http://localhost:5174",
+  "http://localhost:5173",
+  "http://localhost:5176",
+  "http://localhost:5178",
+  "http://localhost:4200",
+  "https://focusfuze.netlify.app",
+  "https://focus-fuze-1.onrender.com"
+];
 
-// Test endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Server is healthy' });
-});
 
-// Register Routes
-app.use('/auth', authenticationRoutes);
-app.use('/personal-goals', personalGoalRoutes);
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (Postman, curl, server-to-server)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        // Return the specific origin (not *) when credentials are used
+        return callback(null, origin);
+      } else {
+        console.log("❌ Blocked by CORS:", origin);
+        return callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    exposedHeaders: ["Content-Type"],
+  })
+);
+
+/* --------------------------------------------------
+   TRUST PROXY (REQUIRED FOR RENDER)
+-------------------------------------------------- */
+app.set("trust proxy", 1);
+
+/* --------------------------------------------------
+   SESSION CONFIG
+-------------------------------------------------- */
+app.use(
+  session({
+    name: "focusfuze.sid",
+    secret: process.env.SESSION_SECRET || "dev_secret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 1000 * 60 * 60 * 24, // 1 day
+    },
+  })
+);
+
+/* --------------------------------------------------
+   ROUTES
+-------------------------------------------------- */
+app.use("/auth", authenticationRoutes);
+app.use("/personal-goals", personalGoalRoutes);
 app.use("/notes", notesRoutes);
 app.use("/calendar", calendarRoutes);
 app.use("/api/videos", savedVideosRoutes);
 app.use("/team-goals", teamGoalRoutes);
 app.use("/api/profile", profileRouter);
 
-// Static files
+/* --------------------------------------------------
+   STATIC FILES
+-------------------------------------------------- */
 app.use("/uploads", express.static("uploads"));
 
-// Root Route
+/* --------------------------------------------------
+   HEALTH CHECK
+-------------------------------------------------- */
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok", message: "Server is healthy" });
+});
+
+/* --------------------------------------------------
+   ROOT
+-------------------------------------------------- */
 app.get("/", (req, res) => {
-  res.json({ status: 'ok', message: 'Focus Fuze API' });
+  res.json({ status: "ok", message: "Focus Fuze API running" });
 });
 
-// 404 handler
+/* --------------------------------------------------
+   404 HANDLER
+-------------------------------------------------- */
 app.use((req, res) => {
-  res.status(404).json({ status: 'error', message: 'Not Found' });
+  res.status(404).json({ message: "Route not found" });
 });
 
-// Error handler
+/* --------------------------------------------------
+   ERROR HANDLER
+-------------------------------------------------- */
 app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  console.error("❌ Error:", err.message);
+  res.status(500).json({
+    message: "Internal Server Error",
+    error: process.env.NODE_ENV === "development" ? err.message : undefined,
+  });
 });
 
+/* --------------------------------------------------
+   START SERVER
+-------------------------------------------------- */
 const startServer = async () => {
   try {
     await connectToDatabase();
     app.listen(port, () => {
       console.log(`✅ Server running on port ${port}`);
-      console.log(`✅ Allowed Origins:`, allowedOrigins);
     });
   } catch (err) {
-    console.error("❌ Server failed to start:", err);
+    console.error("❌ Failed to start server:", err);
     process.exit(1);
   }
 };
 
 startServer();
+
 
 
 // require('dotenv').config();

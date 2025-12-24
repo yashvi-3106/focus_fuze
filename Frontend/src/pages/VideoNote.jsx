@@ -6,7 +6,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-quill/dist/quill.snow.css";
 import "react-toastify/dist/ReactToastify.css";
 
-const API = "https://focus-fuze.onrender.com";
+const API = "https://focus-fuze-1.onrender.com";
 
 const getYoutubeId = (url = "") => {
   try {
