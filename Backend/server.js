@@ -28,10 +28,10 @@ app.use((req, res, next) => {
 });
 
 const allowedOrigins = [
-  " http://localhost:4200",
+  "http://localhost:4200",
   "http://localhost:5178",
   "http://localhost:5173",
-  "https://focuss-fuze.netlify.app",
+  "https://focusfuze.netlify.app",  
   "http://localhost:5176",
   "https://focus-fuze.onrender.com"
 ];
