@@ -4,20 +4,53 @@ const cors = require('cors');
 const session = require('express-session');
 const { connectToDatabase } = require('./db');
 
+// Import routes
 const authenticationRoutes = require('./authentication');
 const personalGoalRoutes = require('./personalGoal');
-// console.log("✅ personalGoalRoutes routes:", personalGoalRoutes.stack.map(r => `${r.route.path} (${r.route.stack[0].method})`));
 const notesRoutes = require("./notes");
 const calendarRoutes = require("./calendar");
 const savedVideosRoutes = require("./SavedVideos");
 const teamGoalRoutes = require("./teamGoal");
 const profileRouter = require("./profile");
 
-
 const app = express();
 const port = process.env.PORT || 3000;
 
+// CORS configuration
+const allowedOrigins = [
+  "http://localhost:4200",
+  "http://localhost:5178",
+  "http://localhost:5173",
+  "https://focusfuze.netlify.app",
+  "http://localhost:5176",
+  "https://focus-fuze.onrender.com"
+];
 
+// Enable CORS pre-flight
+app.options('*', cors());
+
+// CORS middleware
+// CORS middleware - place this right after your CORS configuration
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    
+    // Check if the origin is in the allowed list
+    if (allowedOrigins.includes(origin)) {
+        res.header('Access-Control-Allow-Origin', origin);
+        res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+        res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        res.header('Access-Control-Allow-Credentials', 'true');
+    }
+
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+
+    next();
+});
+
+// Body parser middleware
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
@@ -27,58 +60,23 @@ app.use((req, res, next) => {
   next();
 });
 
-const allowedOrigins = [
-  "http://localhost:4200",
-  "http://localhost:5178",
-  "http://localhost:5173",
-  "https://focusfuze.netlify.app",  
-  "http://localhost:5176",
-  "https://focus-fuze.onrender.com"
-];
-
-const corsOptions = {
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.log("❌ Blocked by CORS:", origin);
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  exposedHeaders: ["Content-Range", "X-Content-Range"],
-  maxAge: 600, // Cache preflight request for 10 minutes
-  optionsSuccessStatus: 200 // Some legacy browsers choke on 204
-};
-
-app.use(cors(corsOptions));
-
-// Handle preflight requests
-// app.use((req, res, next) => {
-//   res.header("Access-Control-Allow-Origin", 'http://localhost:4200', req.headers.origin || "*");
-//   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-//   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-//   res.header("Access-Control-Allow-Credentials", "true");
-
-//   if (req.method === "OPTIONS") {
-//     return res.status(200).end();
-//   }
-//   next();
-// });
-
+// Session configuration
 app.use(session({
   secret: process.env.SESSION_SECRET || 'default_secret',
-  resave: false, // Avoid resaving unchanged sessions
-  saveUninitialized: false, // Don’t create a session until something is stored
+  resave: false,
+  saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // false in development
+    secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
-    sameSite: 'Lax',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: 1000 * 60 * 60 * 24, // 1 day
   },
 }));
+
+// Test endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', message: 'Server is healthy' });
+});
 
 // Register Routes
 app.use('/auth', authenticationRoutes);
@@ -89,28 +87,34 @@ app.use("/api/videos", savedVideosRoutes);
 app.use("/team-goals", teamGoalRoutes);
 app.use("/api/profile", profileRouter);
 
-app.use("/uploads", express.static("uploads"));
+// Static files
 app.use("/uploads", express.static("uploads"));
 
 // Root Route
 app.get("/", (req, res) => {
-  res.send("Notes API is running...");
+  res.json({ status: 'ok', message: 'Focus Fuze API' });
 });
 
-// Catch-all for unmatched routes (AFTER all specific routes)
-app.use((req, res, next) => {
-  console.log(`❌ 404 - Route not found: ${req.method} ${req.path}`);
-  res.status(404).send(`Cannot ${req.method} ${req.path}`);
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ status: 'error', message: 'Not Found' });
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).json({ status: 'error', message: 'Internal Server Error' });
 });
 
 const startServer = async () => {
   try {
     await connectToDatabase();
     app.listen(port, () => {
-      console.log(`✅ Server running at http://localhost:${port}`);
+      console.log(`✅ Server running on port ${port}`);
+      console.log(`✅ Allowed Origins:`, allowedOrigins);
     });
   } catch (err) {
-    console.error("❌ Database connection failed:", err);
+    console.error("❌ Server failed to start:", err);
     process.exit(1);
   }
 };
